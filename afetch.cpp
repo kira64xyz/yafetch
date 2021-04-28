@@ -7,7 +7,6 @@
 
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
-#include <sys/statvfs.h>
 #include <linux/kernel.h>
 
 struct sysinfo sysinfo_local;
@@ -83,6 +82,31 @@ std::string get_host() {
 	return host;
 }
 
+std::string get_packages() {
+	std::string osname_pkg = get_osname();
+	std::string pkg;
+	FILE *stream;
+	const int max_buffer = 256;
+	char buffer[max_buffer];
+	char *cmd = "echo N/A";
+
+	if (osname_pkg == "Gentoo") {
+		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
+	}
+
+
+	stream = popen(cmd, "r");
+        if (stream) {
+                while (!feof(stream))
+        	if (fgets(buffer, max_buffer, stream) != NULL) pkg.append(buffer);
+              	pclose(stream);
+        }
+        return pkg;
+
+	//else if (osname_pkg == "Ubuntu"
+	
+}
+
 int main() {
 	if(uname(&uname_local) != 0) {
 		perror("uname error");
@@ -97,12 +121,14 @@ int main() {
 	std::string sysuptime = get_uptime();
 	std::string osname = get_osname();
 	std::string hostname = get_host();
+	std::string pkgnumber = get_packages();
 
 	std::cout << username << "@" << uname_local.nodename << "\n";
-	std::cout << "os: \t\t\t" << osname << "/" << uname_local.sysname << "\n";
-	std::cout << "host: \t\t\t" << hostname << "\n";
-	std::cout << "kernel: \t\t" << uname_local.release << "\n";
-	std::cout << "uptime: \t\t" << sysuptime << "\n";
+	std::cout << "os:     " << osname << "/" << uname_local.sysname << "\n";
+	std::cout << "host:   " << hostname << "\n";
+	std::cout << "kernel: " << uname_local.release << "\n";
+	std::cout << "uptime: " << sysuptime << "\n";
+	std::cout << "pkgs:   " << pkgnumber << "\n";
 
 	exit(0);
 }
