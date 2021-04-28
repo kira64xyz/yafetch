@@ -41,21 +41,26 @@ std::string get_uptime() {
 
 std::string get_osname() {
 	std::string name;
+	std::string line;
 	std::ifstream infile;
+	size_t pos;
 	infile.open("/etc/os-release");
 	if (infile.good()) {
-		std::getline(infile, name);
+		while (infile.good()) {
+			std::getline(infile, line);
+			pos=line.find("PRETTY_NAME=");
+			if(pos!=std::string::npos) {
+				name = line;
+				break;
+			}
+		}
 	}
 	else {
 		perror("unable to open /etc/os-release");
 		exit(EXIT_FAILURE);
 	}
-	name.erase(name.begin(), name.begin()+5);
-
-	if (!(isalpha(name.at(0)))) {
-		name.erase(name.begin());
-		name.erase(name.end());
-	}
+	name.erase(name.begin(), name.begin()+13);
+	name.erase(name.end()-1);
 	infile.close();
 	return name;
 }
@@ -131,7 +136,7 @@ int main() {
 	std::string pkgnumber = get_packages();
 
 	std::cout << username << "@" << uname_local.nodename << "\n";
-	std::cout << "os:     " << osname << "/" << uname_local.sysname << "\n";
+	std::cout << "os:     " << osname << "\n";
 	std::cout << "host:   " << hostname << "\n";
 	std::cout << "kernel: " << uname_local.release << "\n";
 	std::cout << "uptime: " << sysuptime << "\n";
