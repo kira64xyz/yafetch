@@ -88,7 +88,7 @@ std::string get_packages() {
 	FILE *stream;
 	const int max_buffer = 256;
 	char buffer[max_buffer];
-	char *cmd = "echo N/A";
+	char *cmd = "echo N/A \n";
 
 	if (osname_pkg == "Gentoo") {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
@@ -128,7 +128,7 @@ int main() {
 	std::cout << "host:   " << hostname << "\n";
 	std::cout << "kernel: " << uname_local.release << "\n";
 	std::cout << "uptime: " << sysuptime << "\n";
-	std::cout << "pkgs:   " << pkgnumber << "\n";
+	std::cout << "pkgs:   " << pkgnumber;
 
 	exit(0);
 }
