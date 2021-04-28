@@ -93,37 +93,17 @@ std::string get_host() {
 }
 
 std::string get_packages() {
-	std::string name;
-        std::string line;
-        std::ifstream infile;
-        size_t pos;
-        infile.open("/etc/os-release");
-        if (infile.good()) {
-                while (infile.good()) {
-                        std::getline(infile, line);
-                        pos=line.find("ID=");
-                        if(pos!=std::string::npos) {
-                                name = line;
-                                break;
-                        }
-                }
-        }
-        else {
-                perror("unable to open /etc/os-release");
-                exit(EXIT_FAILURE);
-        }
-	name.erase(name.begin(),name.begin()+3);
-	infile.close();
+	std::string name = get_osname();
 	std::string pkg;
 	FILE *stream;
 	const int max_buffer = 256;
 	char buffer[max_buffer];
 	char *cmd = "echo N/A \n";
 
-	if (name == "gentoo") {
+	if (name.find("Gentoo")!=std::string::npos) {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
-	else if (name=="linuxmint"||name=="ubuntu"||name=="debian") {
+	else if (name.find("Mint")!=std::string::npos||name.find("Ubuntu")!=std::string::npos||name.find("Debian")!=std::string::npos) {
 		cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
 
