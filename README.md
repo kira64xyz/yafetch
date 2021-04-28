@@ -4,7 +4,7 @@ another fetch clone written in C++
 
 ## Dependencies
 
-- g++
+- gcc version 11 or higher
 
 ## Build instructions
 
