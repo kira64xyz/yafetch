@@ -51,6 +51,11 @@ std::string get_osname() {
 		exit(EXIT_FAILURE);
 	}
 	name.erase(name.begin(), name.begin()+5);
+
+	if (!(isalpha(name.at(0)))) {
+		name.erase(name.begin());
+		name.erase(name.end());
+	}
 	infile.close();
 	return name;
 }
@@ -93,7 +98,9 @@ std::string get_packages() {
 	if (osname_pkg == "Gentoo") {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
-
+	else if (osname_pkg == "Linux Mint") {
+		cmd = "dpkg --get-selections | wc -l 2>&1";
+	}
 
 	stream = popen(cmd, "r");
         if (stream) {
