@@ -2,6 +2,10 @@
 
 another fetch clone written in C++
 
+## Dependencies
+
+- g++
+
 ## Build instructions
 
 `$ make`		to compile the application <br>
