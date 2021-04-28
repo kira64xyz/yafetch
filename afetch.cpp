@@ -100,10 +100,12 @@ std::string get_packages() {
 	char buffer[max_buffer];
 	char *cmd = "echo N/A \n";
 
-	if (name.contains("Gentoo")) {
+	if (name.find("Gentoo")!=std::string::npos) {
+//	if (name.contains("Gentoo") {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
-	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
+//	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
+	else if (name.find("Mint")!=std::string::npos||name.find("Ubuntu")!=std::string::npos||name.find("Debian")!=std::string::npos) {
 		cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
 
