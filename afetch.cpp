@@ -1,5 +1,6 @@
 #include <iostream>
 #include <errno.h>
+#include <unistd.h>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -32,7 +33,7 @@ std::string get_uptime() {
 		}
 	}
 	else {
-		ss << day << " days " << hour << " hours " << minutes << " minutes";
+		ss << day << "d " << hour << "h " << minutes << "m";
 	}
 	std::string uptime = ss.str();
 
@@ -40,9 +41,9 @@ std::string get_uptime() {
 }
 
 std::string get_osname() {
+	std::string name;
 	std::ifstream infile;
 	infile.open("/etc/os-release");
-	std::string name;
 	if (infile.good()) {
 		std::getline(infile, name);
 	}
@@ -51,7 +52,35 @@ std::string get_osname() {
 		exit(EXIT_FAILURE);
 	}
 	name.erase(name.begin(), name.begin()+5);
+	infile.close();
 	return name;
+}
+
+std::string get_host() {
+	std::string product_name;
+	std::string product_family;
+	std::ifstream infile;
+	infile.open("/sys/devices/virtual/dmi/id/product_name");
+	if (infile.good()) {
+		std::getline(infile, product_name);
+	}
+	else {
+		perror("unable to get device information");
+		exit(EXIT_FAILURE);
+	}
+	infile.close();
+	infile.open("/sys/devices/virtual/dmi/id/product_family");
+	if (infile.good()) {
+		std::getline(infile, product_family);
+	}
+	else {
+		perror("unable to get device information");
+                exit(EXIT_FAILURE);
+	}
+	std::stringstream sa;
+	sa << product_name << " " << product_family;
+	std::string host = sa.str();
+	return host;
 }
 
 int main() {
@@ -64,10 +93,14 @@ int main() {
                 exit(EXIT_FAILURE);
         }
 	
+	std::string username = getlogin();
 	std::string sysuptime = get_uptime();
 	std::string osname = get_osname();
+	std::string hostname = get_host();
 
+	std::cout << username << "@" << uname_local.nodename << "\n";
 	std::cout << "os: \t\t\t" << osname << "/" << uname_local.sysname << "\n";
+	std::cout << "host: \t\t\t" << hostname << "\n";
 	std::cout << "kernel: \t\t" << uname_local.release << "\n";
 	std::cout << "uptime: \t\t" << sysuptime << "\n";
 
