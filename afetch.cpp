@@ -123,7 +123,7 @@ std::string get_packages() {
 	if (name == "gentoo") {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
-	else if (name == "linuxmint") {
+	else if (name=="linuxmint"||name=="ubuntu"||name=="debian") {
 		cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
 
