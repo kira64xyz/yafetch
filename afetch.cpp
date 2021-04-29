@@ -133,9 +133,6 @@ std::string get_packages() {
               	pclose(stream);
         }
         return pkg;
-
-	//else if (osname_pkg == "Ubuntu"
-	
 }
 
 std::string get_mem() {
