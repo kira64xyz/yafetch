@@ -101,6 +101,7 @@ std::string get_host() {
 	return host;
 }
 
+
 std::string get_packages() {
 	const auto name = get_osname();
 	std::string pkg;
@@ -115,8 +116,10 @@ std::string get_packages() {
 	}
 //	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
 // C++23 would make this much better, however what would be the point if no debian distro can use the program anyway :)
-	else if (name.find("Mint")!=std::string::npos||name.find("Ubuntu")!=std::string::npos||name.find("Debian")!=std::string::npos) {
-		cmd = "dpkg --get-selections | wc -l 2>&1";
+	else if (name.find("Mint")!=std::string::npos||
+		 name.find("Ubuntu")!=std::string::npos||
+		 name.find("Debian")!=std::string::npos) {
+			cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
 	else if (name.find("NixOS")!=std::string::npos) {
 		cmd = "";
@@ -175,6 +178,7 @@ std::string get_mem() {
         return memory;
 }
 
+
 int main() {
 	if(uname(&uname_local) != 0) {
 		perror("uname error");
@@ -191,16 +195,14 @@ int main() {
 	std::string hostname = get_host();
 	std::string pkgnumber = get_packages();
 	std::string sysmemory = get_mem();
-
-	std::cout << username << "@" << uname_local.nodename << "\n";
-	std::cout << "os:     " << osname << "\n";
-	if (!(hostname.empty())) {
-	std::cout << "host:   " << hostname << "\n";
-	}
-	std::cout << "kernel: " << uname_local.release << "\n";
-	std::cout << "uptime: " << sysuptime << "\n";
-	std::cout << "pkgs:   " << pkgnumber;
-	std::cout << "memory: " << sysmemory << "\n";
+	
+	std::cout << "\033[1;35m" << username << "@" << uname_local.nodename << "\033[0m\n";
+	std::cout << "\033[0;35m" << "os:     \033[0m" << osname << "\n";
+	std::cout << "\033[0;35m" << "host:   \033[0m" << hostname << "\n";
+	std::cout << "\033[0;35m" << "kernel: \033[0m" << uname_local.release << "\n";
+	std::cout << "\033[0;35m" << "uptime: \033[0m" << sysuptime << "\n";
+	std::cout << "\033[0;35m" << "pkgs:   \033[0m" << pkgnumber;
+	std::cout << "\033[0;35m" << "memory: \033[0m" << sysmemory << "\n";
 
 	exit(0);
 }
