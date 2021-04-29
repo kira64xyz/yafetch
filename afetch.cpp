@@ -121,8 +121,9 @@ std::string get_packages() {
 		 name.find("Debian")!=std::string::npos) {
 			cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
-	else if (name.find("NixOS")!=std::string::npos) {
-		cmd = "";
+	else if (name.find("Arch")!=std::string::npos||
+		name.find("Artix")!=std::string::npos) {
+		cmd = "pacman -Q | wc -l";
 	}
 	const char *ccmd = cmd.c_str();
 	stream = popen(ccmd, "r");
