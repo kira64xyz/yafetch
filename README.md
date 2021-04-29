@@ -5,6 +5,7 @@ another fetch clone written in C++
 ## Dependencies
 
 - gcc
+- make
 
 ## Build instructions
 
