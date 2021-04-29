@@ -24,10 +24,10 @@ std::string get_uptime() {
 
 	if (day==0) {
 		if (hour==0) {
-			ss << minutes << " minutes";
+			ss << minutes << "m";
 		}
 		else {
-			ss << hour << " hours " << minutes << " minutes";
+			ss << hour << "h " << minutes << "m";
 		}
 	}
 	else {
