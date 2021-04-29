@@ -71,7 +71,6 @@ std::string get_host() {
 	infile.open("/sys/devices/virtual/dmi/id/product_name");
 	if (infile.good()) {
 		std::getline(infile, product_name);
-		if (
 	}
 	else {
 		perror("unable to get device information");
@@ -88,14 +87,14 @@ std::string get_host() {
 	}
 	std::stringstream hostss;
 	hostss << product_name << " " << product_family;
-	std::string host == hostss.str();
+	std::string host = hostss.str();
 
-	if (host.find("OEM")!=std::string::npos ||
-	host.find("O.E.M.")!=std::string::npos ||
-	host.find("Default")!=std::string::npos || 
-	host.find("INVALID")!=std::string::npos || 
-	host.find("Not")!=std::string::npos || 
-	host.find("System")!=std::string::npos) {
+	if (host.find("OEM")!=std::string::npos||
+			host.find("O.E.M.")!=std::string::npos||
+			host.find("Default")!=std::string::npos||
+			host.find("INVALID")!=std::string::npos||
+			host.find("Not")!=std::string::npos||
+			host.find("System")!=std::string::npos) {
 		host = "";
 	}
 
