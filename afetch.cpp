@@ -107,7 +107,7 @@ std::string get_packages() {
 	FILE *stream;
 	const int max_buffer = 256;
 	char buffer[max_buffer];
-	char *cmd = "echo N/A \n";
+	std::string cmd = "echo N/A \n";
 
 	if (name.find("Gentoo")!=std::string::npos) {
 //	if (name.contains("Gentoo") {
@@ -121,8 +121,8 @@ std::string get_packages() {
 	else if (name.find("NixOS")!=std::string::npos) {
 		cmd = "";
 	}
-
-	stream = popen(cmd, "r");
+	const char *ccmd = cmd.c_str();
+	stream = popen(ccmd, "r");
         if (stream) {
                 while (!feof(stream))
         	if (fgets(buffer, max_buffer, stream) != NULL) pkg.append(buffer);
