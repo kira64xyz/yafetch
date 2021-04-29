@@ -1,7 +1,6 @@
 #include <iostream>
 #include <errno.h>
 #include <unistd.h>
-#include <string>
 #include <fstream>
 #include <sstream>
 
@@ -86,9 +85,9 @@ std::string get_host() {
 		perror("unable to get device information");
                 exit(EXIT_FAILURE);
 	}
-	std::stringstream sa;
-	sa << product_name << " " << product_family;
-	std::string host = sa.str();
+	std::stringstream hostss;
+	hostss << product_name << " " << product_family;
+	std::string host = hostss.str();
 	return host;
 }
 
@@ -105,8 +104,12 @@ std::string get_packages() {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
 //	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
+// C++23 would make this much better, however what would be the point if no debian distro can use the program anyway :)
 	else if (name.find("Mint")!=std::string::npos||name.find("Ubuntu")!=std::string::npos||name.find("Debian")!=std::string::npos) {
 		cmd = "dpkg --get-selections | wc -l 2>&1";
+	}
+	else if (name.find("NixOS")!=std::string::npos) {
+		cmd = "";
 	}
 
 	stream = popen(cmd, "r");
@@ -119,6 +122,47 @@ std::string get_packages() {
 
 	//else if (osname_pkg == "Ubuntu"
 	
+}
+
+std::string get_mem() {
+	unsigned long memtotal = sysinfo_local.totalram / 1024;
+	unsigned long memavail;
+	std::string memavailstr;
+	std::string searchtoken;
+	size_t mpos;
+	std::ifstream infile("/proc/meminfo");
+	if (infile.good()) {
+                while (infile.good()) {
+                        std::getline(infile, searchtoken);
+                        mpos=searchtoken.find("MemAvailable");
+                        if(mpos!=std::string::npos) {
+				memavailstr = searchtoken;
+                                break;
+                        }
+                }
+        }
+        else {
+                perror("unable to open /proc/meminfo");
+                exit(EXIT_FAILURE);
+        }
+	memavailstr.erase(memavailstr.begin(), memavailstr.begin()+13);
+	infile.close();
+	std::istringstream mema (memavailstr);
+	mema >> memavail;
+	if (mema.fail()) {
+		perror("unable to calculate ram usage");
+		exit(EXIT_FAILURE);
+	}
+
+	unsigned long memused = memtotal - memavail;
+	memused /= 1024;
+	memtotal /= 1024;
+	std::stringstream mem;
+	mem << memused << "M / " << memtotal << "M";
+	std::string memory = mem.str();
+
+
+        return memory;
 }
 
 int main() {
@@ -136,6 +180,7 @@ int main() {
 	std::string osname = get_osname();
 	std::string hostname = get_host();
 	std::string pkgnumber = get_packages();
+	std::string sysmemory = get_mem();
 
 	std::cout << username << "@" << uname_local.nodename << "\n";
 	std::cout << "os:     " << osname << "\n";
@@ -143,6 +188,7 @@ int main() {
 	std::cout << "kernel: " << uname_local.release << "\n";
 	std::cout << "uptime: " << sysuptime << "\n";
 	std::cout << "pkgs:   " << pkgnumber;
+	std::cout << "memory: " << sysmemory << "\n";
 
 	exit(0);
 }
