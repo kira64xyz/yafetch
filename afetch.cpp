@@ -216,7 +216,15 @@ std::string get_ascii() {
     ---(_) \t\n\
 \t\t\n";
 	}
-
+	else if (osascii.find("Arch")!=std::string::npos) {
+		ascii = "       /\\\t\n\
+      /  \\\t\n\
+     /\\   \\\t\n\
+    /      \\\t\n\
+   /   ,,   \\\t\n\
+  /   |  |  -\\\t\n\
+ /_-''    ''-_\\\t";
+	}
 	return ascii;
 }
 
