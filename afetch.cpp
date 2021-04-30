@@ -195,7 +195,7 @@ std::string get_ascii() {
 (_) |   |\t\n\
  \\  --- _/\t\n\
     ---(_) \t\n\
-\t\t\t\n";
+\t\t\n";
 	}
 
 	return ascii;
