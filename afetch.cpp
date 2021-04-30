@@ -179,6 +179,30 @@ std::string get_mem() {
         return memory;
 }
 
+std::string get_ascii() {
+	std::string ascii;
+	std::string osascii = get_osname();
+	if (osascii.find("Gentoo")!=std::string::npos) {
+		ascii = "\033[1;35m _-----_\t\n\
+\033[1;35m(       \\\t\n\
+\033[1;35m\\    0   \\\t\n\
+\033[1;0m \\        )\t\n\
+\033[1;0m /      _/\t\n\
+\033[1;0m(     _-\t\n\
+\033[1;0m\\____-\t\t";
+	}
+	else if (osascii.find("Ubuntu")!=std::string::npos) {
+		ascii = "         _\t\n\
+     ---(_)\t\n\
+ _/  ---  \\\t\n\
+(_) |   |\t\n\
+ \\  --- _/\t\n\
+    ---(_) \t\n\
+\t\t\t\n";
+	}
+
+	return ascii;
+}
 
 int main() {
 	if(uname(&uname_local) != 0) {
@@ -197,13 +221,24 @@ int main() {
 	std::string pkgnumber = get_packages();
 	std::string sysmemory = get_mem();
 	
-	std::cout << "\033[1;35m" << username << "@" << uname_local.nodename << "\033[0m\n";
-	std::cout << "\033[0;35m" << "os:     \033[0m" << osname << "\n";
-	std::cout << "\033[0;35m" << "host:   \033[0m" << hostname << "\n";
-	std::cout << "\033[0;35m" << "kernel: \033[0m" << uname_local.release << "\n";
-	std::cout << "\033[0;35m" << "uptime: \033[0m" << sysuptime << "\n";
-	std::cout << "\033[0;35m" << "pkgs:   \033[0m" << pkgnumber;
-	std::cout << "\033[0;35m" << "memory: \033[0m" << sysmemory << "\n";
+	std::string ascii = get_ascii();
+	std::string line;
+	std::istringstream f(ascii);
+
+	std::getline(f, line);
+	std::cout << line << "\033[1;35m" << username << "@" << uname_local.nodename << "\033[0m\n";
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "os:     \033[0m" << osname << "\n";
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "host:   \033[0m" << hostname << "\n";
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "kernel: \033[0m" << uname_local.release << "\n";
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "uptime: \033[0m" << sysuptime << "\n";
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "pkgs:   \033[0m" << pkgnumber;
+	std::getline(f, line);
+	std::cout << line << "\033[0;35m" << "memory: \033[0m" << sysmemory << "\n\n\n";
 
 	exit(0);
 }
