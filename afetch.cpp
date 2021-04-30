@@ -71,7 +71,15 @@ std::string get_host() {
 	infile.open("/sys/devices/virtual/dmi/id/product_name");
 	if (infile.good()) {
 		std::getline(infile, product_name);
-	}
+		if (product_name.find("OEM")!=std::string::npos||
+                        product_name.find("O.E.M.")!=std::string::npos||
+                        product_name.find("Default")!=std::string::npos||
+                        product_name.find("INVALID")!=std::string::npos||
+                        product_name.find("Not")!=std::string::npos||
+                        product_name.find("System")!=std::string::npos) {
+                	product_name = "";
+		}
+        }
 	else {
 		perror("unable to get device information");
 		exit(EXIT_FAILURE);
@@ -80,7 +88,15 @@ std::string get_host() {
 	infile.open("/sys/devices/virtual/dmi/id/product_family");
 	if (infile.good()) {
 		std::getline(infile, product_family);
-	}
+		if (product_family.find("OEM")!=std::string::npos||
+                        product_family.find("O.E.M.")!=std::string::npos||
+                        product_family.find("Default")!=std::string::npos||
+                        product_family.find("INVALID")!=std::string::npos||
+                        product_family.find("Not")!=std::string::npos||
+                        product_family.find("System")!=std::string::npos) {
+                	product_family = "";
+		}
+        }
 	else {
 		perror("unable to get device information");
                 exit(EXIT_FAILURE);
