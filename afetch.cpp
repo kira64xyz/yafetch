@@ -244,12 +244,12 @@ std::string get_ascii() {
 \033[1;32m  \\_________/\t";
 	}
 	else if (osascii.find("Debian")!=std::string::npos) {
-		ascii = "\033[1;31m  _____\t\n\
+		ascii = "\033[1;31m  _____\t\t\n\
 \033[1;31m /  __ \\\t\n\
 \033[1;31m|  /    |\t\n\
 \033[1;31m|  \\___-\t\n\
-\033[1;31m-_\t\n\
-\033[1;31m  --_\t\n\
+\033[1;31m-_\t\t\n\
+\033[1;31m  --_\t\t\n\
 \t\t";
 	}
 	else {
