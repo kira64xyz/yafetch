@@ -208,24 +208,48 @@ std::string get_ascii() {
 \033[1;0m\\____-\t\t";
 	}
 	else if (osascii.find("Ubuntu")!=std::string::npos) {
-		ascii = "         _\t\n\
-     ---(_)\t\n\
- _/  ---  \\\t\n\
-(_) |   |\t\n\
- \\  --- _/\t\n\
-    ---(_) \t\n\
+		ascii = "\033[0;33m         _\t\n\
+\033[0;33m     ---(_)\t\n\
+\033[0;33m _/  ---  \\\t\n\
+\033[0;33m(_) |   |\t\n\
+\033[0;33m \\  --- _/\t\n\
+\033[0;33m    ---(_) \t\n\
 \t\t\n";
 	}
 	else if (osascii.find("Arch")!=std::string::npos) {
-		ascii = "       /\\\t\n\
-      /  \\\t\n\
-     /\\   \\\t\n\
-    /      \\\t\n\
-   /   ,,   \\\t\n\
-  /   |  |  -\\\t\n\
- /_-''    ''-_\\\t";
+		ascii = "\033[1;36m       /\\\t\n\
+\033[1;36m      /  \\\t\n\
+\033[1;36m     /\\   \\\t\n\
+\033[1;34m    /      \\\t\n\
+\033[1;34m   /   ,,   \\\t\n\
+\033[1;34m  /   |  |  -\\\t\n\
+\033[1;34m /_-''    ''-_\\\t";
+	}
+	else if (osascii.find("Artix")!=std::string::npos) {
+		ascii = "\033[1;34m      /\\\t\n\
+\033[1;34m     /  \\\t\n\
+\033[1;34m    / `'.,\\\t\n\
+\033[1;34m   /     ',\t\n\
+\033[1;34m  /      ,`\\\t\n\
+\033[1;34m /   ,.'`.  \\\t\n\
+\033[1;34m/.,'`      `'.\\\t";
+	}
+	else {
+		ascii = "\033[1;34m    ___\t\t\n\
+\033[1;34m   (\033[1;0m..\033[1;34m |\t\n\
+\033[1;34m   (\033[1;35m<>\033[1;34m |\t\n\
+\033[1;34m  / \033[1;0m__\033[1;34m  \\\t\n\
+\033[1;34m ( \033[1;0m/  \\\033[1;34m /|\t\n\
+\033[1;35m_\033[1;34m/\\ \033[1;0m__)\033[1;34m/\033[1;35m_\033[1;34m)\t\n\
+\033[1;35m\\/\033[1;34m-____\033[1;35m\\/\t\n";
 	}
 	return ascii;
+}
+
+std::string get_color() {
+	std::string asciicol = get_ascii();
+	asciicol.erase(asciicol.begin()+8,asciicol.end());
+	return asciicol;
 }
 
 int main() {
@@ -246,23 +270,24 @@ int main() {
 	std::string sysmemory = get_mem();
 	
 	std::string ascii = get_ascii();
+	std::string color = get_color();
 	std::string line;
 	std::istringstream f(ascii);
 
 	std::getline(f, line);
-	std::cout << line << "\033[1;35m" << username << "@" << uname_local.nodename << "\033[0m\n";
+	std::cout << line << color << username << "@" << uname_local.nodename << "\033[0m\n";
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "os:     \033[0m" << osname << "\n";
+	std::cout << line << color << "os:     \033[0m" << osname << "\n";
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "host:   \033[0m" << hostname << "\n";
+	std::cout << line << color << "host:   \033[0m" << hostname << "\n";
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "kernel: \033[0m" << uname_local.release << "\n";
+	std::cout << line << color << "kernel: \033[0m" << uname_local.release << "\n";
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "uptime: \033[0m" << sysuptime << "\n";
+	std::cout << line << color << "uptime: \033[0m" << sysuptime << "\n";
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "pkgs:   \033[0m" << pkgnumber;
+	std::cout << line << color << "pkgs:   \033[0m" << pkgnumber;
 	std::getline(f, line);
-	std::cout << line << "\033[0;35m" << "memory: \033[0m" << sysmemory << "\n\n\n";
+	std::cout << line << color << "memory: \033[0m" << sysmemory << "\n\n";
 
 	exit(0);
 }
