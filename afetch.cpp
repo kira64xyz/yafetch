@@ -67,6 +67,7 @@ std::string get_osname() {
 std::string get_host() {
 	std::string product_name;
 	std::string product_family;
+	std::string space = " ";
 	std::ifstream infile;
 	infile.open("/sys/devices/virtual/dmi/id/product_name");
 	if (infile.good()) {
@@ -78,6 +79,7 @@ std::string get_host() {
                         product_name.find("Not")!=std::string::npos||
                         product_name.find("System")!=std::string::npos) {
                 	product_name = "";
+			space = "";
 		}
         }
 	else {
@@ -95,6 +97,7 @@ std::string get_host() {
                         product_family.find("Not")!=std::string::npos||
                         product_family.find("System")!=std::string::npos) {
                 	product_family = "";
+			space = "";
 		}
         }
 	else {
@@ -102,7 +105,7 @@ std::string get_host() {
                 exit(EXIT_FAILURE);
 	}
 	std::stringstream hostss;
-	hostss << product_name << " " << product_family;
+	hostss << product_name << space << product_family;
 	std::string host = hostss.str();
 
 	if (host.find("OEM")!=std::string::npos||
