@@ -6,7 +6,6 @@
 
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
-#include <linux/kernel.h>
 
 struct sysinfo sysinfo_local;
 struct utsname uname_local;
