@@ -1,6 +1,6 @@
-# afetch
+# yafetch
 
-another fetch clone written in C++
+yet another fetch clone written in C++
 
 ## Dependencies
 
