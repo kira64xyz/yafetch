@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "config.h"
+
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
 
@@ -193,86 +195,8 @@ std::string get_mem() {
 	return memory;
 }
 
-std::string get_ascii() {
-	std::string ascii;
-	std::string osascii = get_osname();
-	if (osascii.find("Gentoo")!=std::string::npos) {
-		ascii = "\033[1;35m _-----_\t\n\
-\033[1;35m(       \\\t\n\
-\033[1;35m\\    0   \\\t\n\
-\033[1;0m \\        )\t\n\
-\033[1;0m /      _/\t\n\
-\033[1;0m(     _-\t\n\
-\033[1;0m\\____-\t\t";
-	}
-	else if (osascii.find("Ubuntu")!=std::string::npos) {
-		ascii = "\033[0;33m         _\t\n\
-\033[0;33m     ---(_)\t\n\
-\033[0;33m _/  ---  \\\t\n\
-\033[0;33m(_) |   |\t\n\
-\033[0;33m  \\  --- _/\t\n\
-\033[0;33m     ---(_) \t\n\
-\t\t\n";
-	}
-	else if (osascii.find("Arch")!=std::string::npos) {
-		ascii = "\033[1;36m       /\\\t\n\
-\033[1;36m      /  \\\t\n\
-\033[1;36m     /\\   \\\t\n\
-\033[1;34m    /      \\\t\n\
-\033[1;34m   /   ,,   \\\t\n\
-\033[1;34m  /   |  |  -\\\t\n\
-\033[1;34m /_-''    ''-_\\\t";
-	}
-	else if (osascii.find("Artix")!=std::string::npos) {
-		ascii = "\033[1;34m      /\\\t\n\
-\033[1;34m     /  \\\t\n\
-\033[1;34m    / `'.,\\\t\n\
-\033[1;34m   /     ',\t\n\
-\033[1;34m  /      ,`\\\t\n\
-\033[1;34m /   ,.'`.  \\\t\n\
-\033[1;34m/.,'`      `'.\\\t";
-	}
-	else if (osascii.find("Mint")!=std::string::npos) {
-		ascii = "\033[1;32m ___________\t\n\
-\033[1;32m|_          \\\t\n\
-\033[1;32m  | \033[1;0m| _____ \033[1;32m|\t\n\
-\033[1;32m  | \033[1;0m| | | | \033[1;32m|\t\n\
-\033[1;32m  | \033[1;0m| | | | \033[1;32m|\t\n\
-\033[1;32m  | \033[1;0m\\_____/ \033[1;32m|\t\n\
-\033[1;32m  \\_________/\t";
-	}
-	else if (osascii.find("Debian")!=std::string::npos) {
-		ascii = "\033[1;31m  _____\t\t\n\
-\033[1;31m /  __ \\\t\n\
-\033[1;31m|  /    |\t\n\
-\033[1;31m|  \\___-\t\n\
-\033[1;31m-_\t\t\n\
-\033[1;31m  --_\t\t\n\
-\t\t";
-	}
-	else if (osascii.find("NixOS")!=std::string::npos) {
-		ascii = "\033[1;34m  \\\\  \\\\ //\t\n\
-\033[1;34m ==\\\\__\\\\/ //\t\n\
-\033[1;34m   //   \\\\//\t\n\
-\033[1;34m==//     //==\t\n\
-\033[1;34m //\\\\___//\t\n\
-\033[1;34m// /\\\\  \\\\==\t\n\
-\033[1;34m  // \\\\  \\\\\t";
-	}
-	else {
-		ascii = "\033[1;34m    ___\t\t\n\
-\033[1;34m   (\033[1;0m..\033[1;34m |\t\n\
-\033[1;34m   (\033[1;35m<>\033[1;34m |\t\n\
-\033[1;34m  / \033[1;0m__\033[1;34m  \\\t\n\
-\033[1;34m ( \033[1;0m/  \\\033[1;34m /|\t\n\
-\033[1;35m_\033[1;34m/\\ \033[1;0m__)\033[1;34m/\033[1;35m_\033[1;34m)\t\n\
-\033[1;35m\\/\033[1;34m-____\033[1;35m\\/\t\n";
-	}
-	return ascii;
-}
-
 std::string get_color() {
-	std::string asciicol = get_ascii();
+	std::string asciicol = logo;
 	asciicol.erase(asciicol.begin()+8,asciicol.end());
 	return asciicol;
 }
@@ -294,10 +218,9 @@ int main() {
 	std::string pkgnumber = get_packages();
 	std::string sysmemory = get_mem();
 	
-	std::string ascii = get_ascii();
 	std::string color = get_color();
 	std::string line;
-	std::istringstream f(ascii);
+	std::istringstream f(logo);
 
 	std::getline(f, line);
 	std::cout << line << color << username << "@" << uname_local.nodename << "\033[0m\n";
