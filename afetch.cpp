@@ -11,7 +11,7 @@ struct sysinfo sysinfo_local;
 struct utsname uname_local;
 
 std::string get_uptime() {
-        long totalsecs = sysinfo_local.uptime;
+	long totalsecs = sysinfo_local.uptime;
 
 	int day = totalsecs / (24 * 3600);
 	totalsecs %= (24 * 3600);
@@ -71,16 +71,16 @@ std::string get_host() {
 	infile.open("/sys/devices/virtual/dmi/id/product_name");
 	if (infile.good()) {
 		std::getline(infile, product_name);
-		if (product_name.find("OEM")!=std::string::npos||
-                        product_name.find("O.E.M.")!=std::string::npos||
-                        product_name.find("Default")!=std::string::npos||
-                        product_name.find("INVALID")!=std::string::npos||
-                        product_name.find("Not")!=std::string::npos||
-                        product_name.find("System")!=std::string::npos) {
-                	product_name = "";
-			space = "";
+		if (product_name.find("OEM")!=std::string::npos ||
+			product_name.find("O.E.M.")!=std::string::npos ||
+			product_name.find("Default")!=std::string::npos ||
+			product_name.find("INVALID")!=std::string::npos ||
+			product_name.find("Not")!=std::string::npos ||
+			product_name.find("System")!=std::string::npos) {
+				product_name = "";
+				space = "";
 		}
-        }
+	}
 	else {
 		perror("unable to get device information");
 		exit(EXIT_FAILURE);
@@ -89,31 +89,31 @@ std::string get_host() {
 	infile.open("/sys/devices/virtual/dmi/id/product_family");
 	if (infile.good()) {
 		std::getline(infile, product_family);
-		if (product_family.find("OEM")!=std::string::npos||
-                        product_family.find("O.E.M.")!=std::string::npos||
-                        product_family.find("Default")!=std::string::npos||
-                        product_family.find("INVALID")!=std::string::npos||
-                        product_family.find("Not")!=std::string::npos||
-                        product_family.find("System")!=std::string::npos) {
-                	product_family = "";
-			space = "";
+		if (product_family.find("OEM")!=std::string::npos ||
+			product_family.find("O.E.M.")!=std::string::npos ||
+			product_family.find("Default")!=std::string::npos ||
+			product_family.find("INVALID")!=std::string::npos ||
+			product_family.find("Not")!=std::string::npos ||
+			product_family.find("System")!=std::string::npos) {
+				product_family = "";
+				space = "";
 		}
-        }
+	}
 	else {
 		perror("unable to get device information");
-                exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	std::stringstream hostss;
 	hostss << product_name << space << product_family;
 	std::string host = hostss.str();
 
-	if (host.find("OEM")!=std::string::npos||
-			host.find("O.E.M.")!=std::string::npos||
-			host.find("Default")!=std::string::npos||
-			host.find("INVALID")!=std::string::npos||
-			host.find("Not")!=std::string::npos||
-			host.find("System")!=std::string::npos) {
-		host = "";
+	if (host.find("OEM")!=std::string::npos ||
+		host.find("O.E.M.")!=std::string::npos ||
+		host.find("Default")!=std::string::npos ||
+		host.find("INVALID")!=std::string::npos ||
+		host.find("Not")!=std::string::npos ||
+		host.find("System")!=std::string::npos) {
+			host = "";
 	}
 
 	return host;
@@ -129,26 +129,26 @@ std::string get_packages() {
 	std::string cmd = "echo N/A \n";
 
 	if (name.find("Gentoo")!=std::string::npos) {
-//	if (name.contains("Gentoo") {
+	//	if (name.contains("Gentoo") {
 		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
 	}
-//	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
-// C++23 would make this much better, however what would be the point if no debian distro can use the program anyway :)
-	else if (name.find("Mint")!=std::string::npos||
-		 name.find("Ubuntu")!=std::string::npos||
-		 name.find("Debian")!=std::string::npos) {
-			cmd = "dpkg --get-selections | wc -l 2>&1";
+	//	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
+	// C++23 would make this much better, however what would be the point if no debian distro can use the program anyway :)
+	else if (name.find("Mint")!=std::string::npos ||
+		 	name.find("Ubuntu")!=std::string::npos ||
+		 	name.find("Debian")!=std::string::npos) {
+				cmd = "dpkg --get-selections | wc -l 2>&1";
 	}
-	else if (name.find("Arch")!=std::string::npos||
-		name.find("Artix")!=std::string::npos) {
-		cmd = "pacman -Q | wc -l";
+	else if (name.find("Arch")!=std::string::npos ||
+			name.find("Artix")!=std::string::npos) {
+				cmd = "pacman -Q | wc -l";
 	}
 	const char *ccmd = cmd.c_str();
 	stream = popen(ccmd, "r");
         if (stream) {
                 while (!feof(stream))
-        	if (fgets(buffer, max_buffer, stream) != NULL) pkg.append(buffer);
-              	pclose(stream);
+        			if (fgets(buffer, max_buffer, stream) != NULL) pkg.append(buffer);
+						pclose(stream);
         }
         return pkg;
 }
@@ -161,19 +161,19 @@ std::string get_mem() {
 	size_t mpos;
 	std::ifstream infile("/proc/meminfo");
 	if (infile.good()) {
-                while (infile.good()) {
-                        std::getline(infile, searchtoken);
-                        mpos=searchtoken.find("MemAvailable");
-                        if(mpos!=std::string::npos) {
+		while (infile.good()) {
+			std::getline(infile, searchtoken);
+			mpos=searchtoken.find("MemAvailable");
+			if(mpos!=std::string::npos) {
 				memavailstr = searchtoken;
-                                break;
-                        }
-                }
-        }
-        else {
-                perror("unable to open /proc/meminfo");
-                exit(EXIT_FAILURE);
-        }
+					break;
+			}
+		}
+	}
+	else {
+		perror("unable to open /proc/meminfo");
+		exit(EXIT_FAILURE);
+	}
 	memavailstr.erase(memavailstr.begin(), memavailstr.begin()+13);
 	infile.close();
 	std::istringstream mema (memavailstr);
@@ -190,8 +190,7 @@ std::string get_mem() {
 	mem << memused << "M / " << memtotal << "M";
 	std::string memory = mem.str();
 
-
-        return memory;
+	return memory;
 }
 
 std::string get_ascii() {
@@ -284,9 +283,9 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	if (sysinfo(&sysinfo_local) != 0) {
-                perror("sysinfo error");
-                exit(EXIT_FAILURE);
-        }
+		perror("sysinfo error");
+		exit(EXIT_FAILURE);
+	}
 	
 	std::string username = getlogin();
 	std::string sysuptime = get_uptime();
