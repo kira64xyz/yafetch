@@ -15,4 +15,4 @@ yet another fetch clone written in C++
 
 ## Credits
 
--icons from [ufetch](https://gitlab.com/jschx/ufetch)
+- icons from [ufetch](https://gitlab.com/jschx/ufetch)
