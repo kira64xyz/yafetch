@@ -7,6 +7,10 @@ yet another fetch clone written in C++
 - gcc
 - make
 
+## Configuration
+
+specify which logo to use in `config.h`
+
 ## Build instructions
 
 `$ make`		to compile the application <br>
