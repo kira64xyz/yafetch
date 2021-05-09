@@ -4,7 +4,7 @@ yet another fetch clone written in C++
 
 ## Dependencies
 
-- gcc
+- clang
 - make
 
 ## Configuration
