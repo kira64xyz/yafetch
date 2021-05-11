@@ -161,6 +161,12 @@ std::string get_packages() {
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (dpkg) ");
 	}
+	if (!(shell_cmd("command -v nix").empty())) {
+		pkgmgr = shell_cmd("nix-store --query --requisites /run/current-system | wc -l");
+		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(" (nix) ");
+       }
+
 
         return pkg;
 }
