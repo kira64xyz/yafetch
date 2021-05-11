@@ -138,19 +138,24 @@ std::string shell_cmd(const char *icmd) {
 
 std::string get_packages() {
 	std::string pkg;
-	std::string pkgcmd = "echo N/A \n";
 	std::string pkgmgr;
 
 	if (!(shell_cmd("command -v emerge").empty())) {
-		pkgcmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
-	} else if (!(shell_cmd("command -v pacman").empty())) {
-		pkgcmd = "pacman -Q | wc -l";
-	} else if (!(shell_cmd("command -v apt").empty())) {
-		pkgcmd = "dpkg --get-selections | wc -l 2>&1";
+		pkgmgr = shell_cmd("ls -dL /var/db/pkg/*/* | wc -l 2>&1");
+		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(" (emerge) ");
+	}
+	if (!(shell_cmd("command -v pacman").empty())) {
+		pkgmgr = shell_cmd("pacman -Q | wc -l");
+		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(" (pacman) ");
+	}
+	if (!(shell_cmd("command -v apt").empty())) {
+		pkgmgr = shell_cmd("dpkg --get-selections | wc -l 2>&1");
+		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(" (dpkg) ");
 	}
 
-	const char *ccmd = pkgcmd.c_str();
-	pkg = shell_cmd(ccmd);
         return pkg;
 }
 
@@ -232,7 +237,7 @@ int main() {
 	std::getline(f, line);
 	std::cout << line << color << "uptime: \033[0m" << sysuptime << "\n";
 	std::getline(f, line);
-	std::cout << line << color << "pkgs:   \033[0m" << pkgnumber;
+	std::cout << line << color << "pkgs:   \033[0m" << pkgnumber << "\n";
 	std::getline(f, line);
 	std::cout << line << color << "memory: \033[0m" << sysmemory << "\n\n";
 
