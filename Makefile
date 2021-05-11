@@ -1,5 +1,5 @@
 CC=clang++
-CFLAGS=-g -Wall
+CFLAGS=-g -Wall -std=c++17
 TARGET=yafetch
 
 all: $(TARGET)

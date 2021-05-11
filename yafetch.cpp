@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 #include "config.h"
 
@@ -136,6 +137,12 @@ std::string shell_cmd(const char *icmd) {
 	return cmdo;
 }
 
+uint num_files(std::string path) {
+	std::filesystem::path pkgfolder = path ;
+	using std::filesystem::directory_iterator;
+	return std::distance(directory_iterator(pkgfolder), directory_iterator{});
+}
+
 std::string get_packages() {
 	std::string pkg;
 	std::string pkgmgr;
@@ -146,8 +153,7 @@ std::string get_packages() {
 		pkg.append(" (emerge) ");
 	}
 	if (!(shell_cmd("command -v pacman").empty())) {
-		pkgmgr = shell_cmd("pacman -Q | wc -l");
-		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(std::to_string(num_files("/var/lib/pacman/local/")-1));
 		pkg.append(" (pacman) ");
 	}
 	if (!(shell_cmd("command -v apt").empty())) {
