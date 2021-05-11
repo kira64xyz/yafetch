@@ -121,37 +121,36 @@ std::string get_host() {
 	return host;
 }
 
-
-std::string get_packages() {
-	const auto name = get_osname();
-	std::string pkg;
+std::string shell_cmd(const char *icmd) {
 	FILE *stream;
 	const int max_buffer = 256;
-	char buffer[max_buffer];
-	std::string cmd = "echo N/A \n";
+        char buffer[max_buffer];
+	std::string cmdo;
+	stream = popen(icmd, "r");
 
-	if (name.find("Gentoo")!=std::string::npos) {
-	//	if (name.contains("Gentoo") {
-		cmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
-	}
-	//	else if (name.contains("Mint")||name.contains("Ubuntu")||name.contains("Debian")) {
-	// C++23 would make this much better, however what would be the point if no debian distro can use the program anyway :)
-	else if (name.find("Mint")!=std::string::npos ||
-		 	name.find("Ubuntu")!=std::string::npos ||
-		 	name.find("Debian")!=std::string::npos) {
-				cmd = "dpkg --get-selections | wc -l 2>&1";
-	}
-	else if (name.find("Arch")!=std::string::npos ||
-			name.find("Artix")!=std::string::npos) {
-				cmd = "pacman -Q | wc -l";
-	}
-	const char *ccmd = cmd.c_str();
-	stream = popen(ccmd, "r");
         if (stream) {
                 while (!feof(stream))
-        			if (fgets(buffer, max_buffer, stream) != NULL) pkg.append(buffer);
-						pclose(stream);
+                                if (fgets(buffer, max_buffer, stream) != NULL) cmdo.append(buffer);
+        				pclose(stream);
         }
+	return cmdo;
+}
+
+std::string get_packages() {
+	std::string pkg;
+	std::string pkgcmd = "echo N/A \n";
+	std::string pkgmgr;
+
+	if (!(shell_cmd("command -v emerge").empty())) {
+		pkgcmd = "ls -dL /var/db/pkg/*/* | wc -l 2>&1" ;
+	} else if (!(shell_cmd("command -v pacman").empty())) {
+		pkgcmd = "pacman -Q | wc -l";
+	} else if (!(shell_cmd("command -v apt").empty())) {
+		pkgcmd = "dpkg --get-selections | wc -l 2>&1";
+	}
+
+	const char *ccmd = pkgcmd.c_str();
+	pkg = shell_cmd(ccmd);
         return pkg;
 }
 
