@@ -104,7 +104,7 @@ std::string get_host() {
 				infile.close();
                                 infile.open("/sys/devices/virtual/dmi/id/board_name");
                                 if (infile.good()) {
-                                        std::getline(infile, product_name);
+                                        std::getline(infile, product_family);
                                 }
                                 else {
                                         perror("unable to get device information");
