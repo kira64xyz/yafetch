@@ -80,7 +80,7 @@ std::string get_host() {
 			product_name.find("Not")!=std::string::npos ||
 			product_name.find("System")!=std::string::npos) {
 				infile.close();
-				infile.open("/sys/devices/virtual/dmi/id/board_vendor");
+				infile.open("/sys/devices/virtual/dmi/id/board_name");
 				if (infile.good()) {
 					std::getline(infile, product_name);
 				}
@@ -101,17 +101,10 @@ std::string get_host() {
 			product_family.find("INVALID")!=std::string::npos ||
 			product_family.find("Not")!=std::string::npos ||
 			product_family.find("System")!=std::string::npos) {
-				infile.close();
-                                infile.open("/sys/devices/virtual/dmi/id/board_name");
-                                if (infile.good()) {
-                                        std::getline(infile, product_family);
-                                }
-                                else {
-                                        perror("unable to get device information");
-                                        exit(EXIT_FAILURE);
-                                }
+				product_family.clear();
 		}
 	}
+	infile.close();
 	std::stringstream hostss;
 	hostss << product_name << " " << product_family;
 	std::string host = hostss.str();
