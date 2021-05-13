@@ -69,7 +69,6 @@ std::string get_osname() {
 std::string get_host() {
 	std::string product_name;
 	std::string product_family;
-	std::string space = " ";
 	std::ifstream infile;
 	infile.open("/sys/devices/virtual/dmi/id/product_name");
 	if (infile.good()) {
@@ -80,13 +79,17 @@ std::string get_host() {
 			product_name.find("INVALID")!=std::string::npos ||
 			product_name.find("Not")!=std::string::npos ||
 			product_name.find("System")!=std::string::npos) {
-				product_name = "";
-				space = "";
+				infile.close();
+				infile.open("/sys/devices/virtual/dmi/id/board_vendor");
+				if (infile.good()) {
+					std::getline(infile, product_name);
+				}
+				else {
+					perror("unable to get device information");
+                			exit(EXIT_FAILURE);
+				}
+
 		}
-	}
-	else {
-		perror("unable to get device information");
-		exit(EXIT_FAILURE);
 	}
 	infile.close();
 	infile.open("/sys/devices/virtual/dmi/id/product_family");
@@ -98,26 +101,20 @@ std::string get_host() {
 			product_family.find("INVALID")!=std::string::npos ||
 			product_family.find("Not")!=std::string::npos ||
 			product_family.find("System")!=std::string::npos) {
-				product_family = "";
-				space = "";
+				infile.close();
+                                infile.open("/sys/devices/virtual/dmi/id/board_name");
+                                if (infile.good()) {
+                                        std::getline(infile, product_name);
+                                }
+                                else {
+                                        perror("unable to get device information");
+                                        exit(EXIT_FAILURE);
+                                }
 		}
 	}
-	else {
-		perror("unable to get device information");
-		exit(EXIT_FAILURE);
-	}
 	std::stringstream hostss;
-	hostss << product_name << space << product_family;
+	hostss << product_name << " " << product_family;
 	std::string host = hostss.str();
-
-	if (host.find("OEM")!=std::string::npos ||
-		host.find("O.E.M.")!=std::string::npos ||
-		host.find("Default")!=std::string::npos ||
-		host.find("INVALID")!=std::string::npos ||
-		host.find("Not")!=std::string::npos ||
-		host.find("System")!=std::string::npos) {
-			host = "";
-	}
 
 	return host;
 }
@@ -165,8 +162,7 @@ std::string get_packages() {
 		pkgmgr = shell_cmd("nix-store --query --requisites /run/current-system | wc -l");
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (nix) ");
-       }
-
+        }
 
         return pkg;
 }
