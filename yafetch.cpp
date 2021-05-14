@@ -5,6 +5,7 @@
 #include <sstream>
 #include <filesystem>
 
+#include "yafetch.h"
 #include "config.h"
 
 #include <sys/utsname.h>
@@ -13,7 +14,7 @@
 struct sysinfo sysinfo_local;
 struct utsname uname_local;
 
-std::string get_uptime() {
+const std::string get_uptime() {
 	long totalsecs = sysinfo_local.uptime;
 
 	int day = totalsecs / (24 * 3600);
@@ -26,22 +27,21 @@ std::string get_uptime() {
 
 	if (day==0) {
 		if (hour==0) {
-			ss << minutes << "m";
+			ss << COLOR << "uptime:\t\033[0m" << minutes << "m\n";
 		}
 		else {
-			ss << hour << "h " << minutes << "m";
+			ss << COLOR << "uptime:\t\033[0m" << hour << "h " << minutes << "m\n";
 		}
 	}
 	else {
-		ss << day << "d " << hour << "h " << minutes << "m";
+		ss << COLOR << "uptime:\t\033[0m" << day << "d " << hour << "h " << minutes << "m\n";
 	}
-	std::string uptime = ss.str();
+	const std::string uptime = ss.str();
 
 	return uptime;
 }
 
-std::string get_osname() {
-	std::string name;
+const std::string get_osname() {
 	std::string line;
 	std::ifstream infile;
 	size_t pos;
@@ -51,7 +51,6 @@ std::string get_osname() {
 			std::getline(infile, line);
 			pos=line.find("PRETTY_NAME=");
 			if(pos!=std::string::npos) {
-				name = line;
 				break;
 			}
 		}
@@ -60,13 +59,16 @@ std::string get_osname() {
 		perror("unable to open /etc/os-release");
 		exit(EXIT_FAILURE);
 	}
-	name.erase(name.begin(), name.begin()+13);
-	name.erase(name.end()-1);
+	line.erase(line.begin(), line.begin()+13);
+	line.erase(line.end()-1);
 	infile.close();
+	std::stringstream os;
+	os << COLOR << "os:\033[0m\t" << line << "\n";
+	const std::string name = os.str();
 	return name;
 }
 
-std::string get_host() {
+const std::string get_host() {
 	std::string product_name;
 	std::string product_family;
 	std::ifstream infile;
@@ -106,8 +108,8 @@ std::string get_host() {
 	}
 	infile.close();
 	std::stringstream hostss;
-	hostss << product_name << " " << product_family;
-	std::string host = hostss.str();
+	hostss << COLOR << "host:\t\033[0m" << product_name << " " << product_family << "\n";
+	const std::string host = hostss.str();
 
 	return host;
 }
@@ -127,13 +129,13 @@ std::string shell_cmd(const char *icmd) {
 	return cmdo;
 }
 
-uint num_files(std::string path) {
+uint num_files_pacman(std::string path) {
 	std::filesystem::path pkgfolder = path ;
 	using std::filesystem::directory_iterator;
 	return std::distance(directory_iterator(pkgfolder), directory_iterator{});
 }
 
-std::string get_packages() {
+const std::string get_packages() {
 	std::string pkg;
 	std::string pkgmgr;
 
@@ -143,7 +145,7 @@ std::string get_packages() {
 		pkg.append(" (emerge) ");
 	}
 	if (!(shell_cmd("command -v pacman").empty())) {
-		pkg.append(std::to_string(num_files("/var/lib/pacman/local/")-1));
+		pkg.append(std::to_string(num_files_pacman("/var/lib/pacman/local/")-1));
 		pkg.append(" (pacman) ");
 	}
 	if (!(shell_cmd("command -v apt").empty())) {
@@ -157,10 +159,13 @@ std::string get_packages() {
 		pkg.append(" (nix) ");
         }
 
-        return pkg;
+	std::stringstream pkgss;
+	pkgss << COLOR << "pkgs:\t\033[0m" << pkg << "\n";
+	const std::string pkgs = pkgss.str();
+        return pkgs;
 }
 
-std::string get_mem() {
+const std::string get_mem() {
 	unsigned long memtotal = sysinfo_local.totalram / 1024;
 	unsigned long memavail;
 	std::string memavailstr;
@@ -194,16 +199,24 @@ std::string get_mem() {
 	memused /= 1024;
 	memtotal /= 1024;
 	std::stringstream mem;
-	mem << memused << "M / " << memtotal << "M";
-	std::string memory = mem.str();
+	mem << COLOR << "memory:\t\033[0m" << memused << "M / " << memtotal << "M\n";
+	const std::string memory = mem.str();
 
 	return memory;
 }
 
-std::string get_color() {
-	std::string asciicol = logo;
-	asciicol.erase(asciicol.begin()+8,asciicol.end());
-	return asciicol;
+const std::string get_user() {
+	std::stringstream su;
+	su << COLOR << getlogin() << "@" << uname_local.nodename << "\033[0m\n";
+	const std::string user = su.str();
+	return user;
+}
+
+const std::string get_kernel() {
+	std::stringstream sk;
+	sk << COLOR << "kernel:\t\033[0m" << uname_local.release << "\033[0m\n";
+	const std::string kernel = sk.str();
+	return kernel;
 }
 
 int main() {
@@ -216,32 +229,16 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	
-	std::string username = getlogin();
-	std::string sysuptime = get_uptime();
-	std::string osname = get_osname();
-	std::string hostname = get_host();
-	std::string pkgnumber = get_packages();
-	std::string sysmemory = get_mem();
-	
-	std::string color = get_color();
 	std::string line;
 	std::istringstream f(logo);
+	std::string inf;
 
-	std::getline(f, line);
-	std::cout << line << color << username << "@" << uname_local.nodename << "\033[0m\n";
-	std::getline(f, line);
-	std::cout << line << color << "os:     \033[0m" << osname << "\n";
-	std::getline(f, line);
-	std::cout << line << color << "host:   \033[0m" << hostname << "\n";
-	std::getline(f, line);
-	std::cout << line << color << "kernel: \033[0m" << uname_local.release << "\n";
-	std::getline(f, line);
-	std::cout << line << color << "uptime: \033[0m" << sysuptime << "\n";
-	std::getline(f, line);
-	std::cout << line << color << "pkgs:   \033[0m" << pkgnumber << "\n";
-	std::getline(f, line);
-	std::cout << line << color << "memory: \033[0m" << sysmemory << "\n\n";
+	for (int x=0;x<7;x++){
+		std::getline(f, line);
+		inf.append(line);
+		inf.append((*info[x])());
+	}
+	puts(inf.c_str());
 
 	exit(0);
 }
-
