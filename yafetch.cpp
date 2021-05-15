@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <algorithm>
 
 #include "yafetch.h"
 #include "config.h"
@@ -128,9 +129,23 @@ std::string shell_cmd(const char *icmd) {
 }
 
 uint num_files_pacman(std::string path) {
-	std::filesystem::path pkgfolder = path ;
+	std::filesystem::path pkgfolder = path;
 	using std::filesystem::directory_iterator;
 	return std::distance(directory_iterator(pkgfolder), directory_iterator{});
+}
+
+uint num_files_portage(std::string path) {
+        std::filesystem::path pkgfolder = path;
+        uint total_subdirs = 0;
+        using std::filesystem::recursive_directory_iterator;
+        for(auto i = recursive_directory_iterator(path) ; i!= recursive_directory_iterator() ; ++i) {
+          if(i.depth() == 1) {
+            i.disable_recursion_pending();
+            total_subdirs++;
+          }
+        }
+
+	return total_subdirs;
 }
 
 const std::string get_packages() {
@@ -139,8 +154,7 @@ const std::string get_packages() {
 	struct stat s;
 
 	if (stat("/etc/portage", &s) == 0) {
-		pkgmgr = shell_cmd("ls -dL /var/db/pkg/*/* | wc -l 2>&1");
-		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
+		pkg.append(std::to_string(num_files_portage("/var/db/pkg")));
 		pkg.append(" (emerge) ");
 	}
 	if (stat("/etc/pacman.d", &s) == 0) {
