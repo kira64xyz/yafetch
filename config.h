@@ -1,5 +1,5 @@
 // Specify which ascii art the program uses
-#include "ascii/gentoo.h"
+#include "ascii/tux.h"
 
 #define COLOR "\033[1;36m"
 
