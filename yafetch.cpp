@@ -23,22 +23,21 @@ const std::string get_uptime() {
 	totalsecs %= 3600;	
 	int minutes = totalsecs / 60;
 
-	std::stringstream ss;
+	std::stringstream uptime;
 
 	if (day==0) {
 		if (hour==0) {
-			ss << COLOR << "uptime:\t\033[0m" << minutes << "m\n";
+			uptime << COLOR << "uptime:\t\033[0m" << minutes << "m\n";
 		}
 		else {
-			ss << COLOR << "uptime:\t\033[0m" << hour << "h " << minutes << "m\n";
+			uptime << COLOR << "uptime:\t\033[0m" << hour << "h " << minutes << "m\n";
 		}
 	}
 	else {
-		ss << COLOR << "uptime:\t\033[0m" << day << "d " << hour << "h " << minutes << "m\n";
+		uptime << COLOR << "uptime:\t\033[0m" << day << "d " << hour << "h " << minutes << "m\n";
 	}
-	const std::string uptime = ss.str();
 
-	return uptime;
+	return uptime.str();
 }
 
 const std::string get_osname() {
@@ -62,10 +61,9 @@ const std::string get_osname() {
 	line.erase(line.begin(), line.begin()+13);
 	line.erase(line.end()-1);
 	infile.close();
-	std::stringstream os;
-	os << COLOR << "os:\033[0m\t" << line << "\n";
-	const std::string name = os.str();
-	return name;
+	std::stringstream name;
+	name << COLOR << "os:\033[0m\t" << line << "\n";
+	return name.str();
 }
 
 const std::string get_host() {
@@ -107,11 +105,10 @@ const std::string get_host() {
 		}
 	}
 	infile.close();
-	std::stringstream hostss;
-	hostss << COLOR << "host:\t\033[0m" << product_name << " " << product_family << "\n";
-	const std::string host = hostss.str();
+	std::stringstream host;
+	host << COLOR << "host:\t\033[0m" << product_name << " " << product_family << "\n";
 
-	return host;
+	return host.str();
 }
 
 std::string shell_cmd(const char *icmd) {
@@ -159,10 +156,10 @@ const std::string get_packages() {
 		pkg.append(" (nix) ");
         }
 
-	std::stringstream pkgss;
-	pkgss << COLOR << "pkgs:\t\033[0m" << pkg << "\n";
-	const std::string pkgs = pkgss.str();
-        return pkgs;
+	std::stringstream pkgs;
+	pkgs << COLOR << "pkgs:\t\033[0m" << pkg << "\n";
+	
+        return pkgs.str();
 }
 
 const std::string get_mem() {
@@ -200,23 +197,20 @@ const std::string get_mem() {
 	memtotal /= 1024;
 	std::stringstream mem;
 	mem << COLOR << "memory:\t\033[0m" << memused << "M / " << memtotal << "M\n";
-	const std::string memory = mem.str();
 
-	return memory;
+	return mem.str();
 }
 
 const std::string get_user() {
 	std::stringstream su;
 	su << COLOR << getlogin() << "@" << uname_local.nodename << "\033[0m\n";
-	const std::string user = su.str();
-	return user;
+	return su.str();
 }
 
 const std::string get_kernel() {
 	std::stringstream sk;
 	sk << COLOR << "kernel:\t\033[0m" << uname_local.release << "\033[0m\n";
-	const std::string kernel = sk.str();
-	return kernel;
+	return sk.str();
 }
 
 int main() {
