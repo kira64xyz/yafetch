@@ -10,6 +10,7 @@
 
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
+#include <sys/stat.h>
 
 struct sysinfo sysinfo_local;
 struct utsname uname_local;
@@ -135,22 +136,23 @@ uint num_files_pacman(std::string path) {
 const std::string get_packages() {
 	std::string pkg;
 	std::string pkgmgr;
+	struct stat s;
 
-	if (!(shell_cmd("command -v emerge").empty())) {
+	if (stat("/etc/portage", &s) == 0) {
 		pkgmgr = shell_cmd("ls -dL /var/db/pkg/*/* | wc -l 2>&1");
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (emerge) ");
 	}
-	if (!(shell_cmd("command -v pacman").empty())) {
+	if (stat("/etc/pacman.d", &s) == 0) {
 		pkg.append(std::to_string(num_files_pacman("/var/lib/pacman/local/")-1));
 		pkg.append(" (pacman) ");
 	}
-	if (!(shell_cmd("command -v apt").empty())) {
+	if (stat("/etc/apt", &s) == 0) {
 		pkgmgr = shell_cmd("dpkg --get-selections | wc -l 2>&1");
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (dpkg) ");
 	}
-	if (!(shell_cmd("command -v nix").empty())) {
+	if (stat("/etc/nix", &s) == 0) {
 		pkgmgr = shell_cmd("nix-store --query --requisites /run/current-system | wc -l");
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (nix) ");
