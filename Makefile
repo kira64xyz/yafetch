@@ -1,11 +1,10 @@
-CC=clang++
 CFLAGS=-g -Wall -std=c++17
 TARGET=yafetch
 
 all: $(TARGET)
 
 $(TARGET): $(TARGET).cpp
-	$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).cpp
+	$(CXX) $(CFLAGS) -o $(TARGET) $(TARGET).cpp
 
 clean:
 	$(RM) $(TARGET)
