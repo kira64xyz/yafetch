@@ -170,7 +170,7 @@ const std::string get_packages() {
 		if (stat("/etc/nix", &s) == 0) {
 			pkgmgr = shell_cmd("nix-store --query --requisites /run/current-system | wc -l");
 		} else {
-			pkgmgr = shell_cmd("nix-env -q");
+			pkgmgr = shell_cmd("nix-env -q | wc -l");
 		}
 		pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
 		pkg.append(" (nix) ");
