@@ -4,7 +4,7 @@ yet another fetch clone written in C++
 
 ## Dependencies
 
-- c++17 capable compiler
+- C++17 capable compiler
 - make
 
 ## Configuration
