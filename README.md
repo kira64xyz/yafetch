@@ -4,12 +4,12 @@ yet another fetch clone written in C++
 
 ## Dependencies
 
-- clang
+- c++17 capable compiler
 - make
 
 ## Configuration
 
-specify which logo to use in `config.h`
+specify which logo and colors to use in `config.h`
 
 ## Build instructions
 
