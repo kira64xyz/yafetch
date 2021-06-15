@@ -223,7 +223,7 @@ const std::string get_mem() {
 
 const std::string get_user() {
 	std::stringstream su;
-	su << COLOR << getlogin() << "@" << uname_local.nodename << "\033[0m\n";
+	su << HOSTCOLOR << getlogin() << "@" << uname_local.nodename << "\033[0m\n";
 	return su.str();
 }
 
