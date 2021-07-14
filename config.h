@@ -7,12 +7,12 @@
 
 // Specify which info to show
 const std::string (*info[])() = {
-	get_user,
-	get_osname,
-	get_host,
-	get_kernel,
-	get_packages,
-	get_uptime,
-	get_mem,
+  User,
+  OSName,
+  Host,
+  Kernel,
+  Packages,
+  Uptime,
+  Mem,
 };
 
