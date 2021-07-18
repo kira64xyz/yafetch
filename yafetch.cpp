@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <errno.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -58,11 +57,6 @@ std::string OSName() {
   std::ifstream infile;
   constexpr std::string_view prettyName{"PRETTY_NAME=\""};
   infile.open("/etc/os-release");
-
-  if (infile.bad()) {
-    perror("unable to open /etc/os-release");
-    exit(EXIT_FAILURE);
-  }
 
   while (infile.good()) {
     std::getline(infile, line);
@@ -158,64 +152,56 @@ uint Portage(std::string path) {
 }
 
 std::string Packages() {
-  std::string pkg;
-  std::string pkgmgr;
+  std::stringstream pkg;
 
   if (std::filesystem::exists("/etc/portage")) {
-    pkg.append(std::to_string(Portage("/var/db/pkg")));
-    pkg.append(" (emerge) ");
+    pkg << std::to_string(Portage("/var/db/pkg")) << " (emerge) ";
   }
   if (std::filesystem::exists("/etc/pacman.d")) {
-    pkg.append(std::to_string(Pacman("/var/lib/pacman/local/") - 1));
-    pkg.append(" (pacman) ");
+    pkg << std::to_string(Pacman("/var/lib/pacman/local/") - 1) << " (pacman) ";
   }
   if (std::filesystem::exists("/etc/apt")) {
-    pkgmgr = shellCmd("dpkg --get-selections | wc -l 2>&1");
-    pkg.append(" (dpkg) ");
+    pkg << shellCmd("dpkg --get-selections | wc -l 2>&1") << " (dpkg) ";
   }
   if (std::filesystem::exists("/nix")) {
     if (std::filesystem::exists("/etc/nix")) {
-      pkg.append(shellCmd("nix-store --query --requisites /run/current-system | wc -l"));
+      pkg << shellCmd("nix-store --query --requisites /run/current-system | wc -l");
     } else {
-      pkgmgr = shellCmd("nix-env -q | wc -l");
+      pkg << shellCmd("nix-env -q | wc -l");
     }
-    pkg.append(" (nix) ");
+    pkg << (" (nix) ");
   }
 
   std::stringstream pkgs;
-  pkgs << COLOR << "pkgs:\t\033[0m" << pkg << "\n";
+  pkgs << COLOR << "pkgs:\t\033[0m" << pkg.str() << '\n';
 
   return pkgs.str();
 }
 
 std::string Mem() {
-  unsigned long memtotal = Sysinfo.totalram / 1024;
-  unsigned long memavail;
+  unsigned long memTotal{Sysinfo.totalram / 1024};
+  unsigned long memAvail;
   constexpr std::string_view memAvailable{"MemAvailable:"};
-  std::string memavailstr;
-  std::string searchtoken;
+  std::string memAvailStr;
+  std::string searchToken;
   std::ifstream infile("/proc/meminfo");
-  if (infile.bad()) {
-    perror("unable to open /proc/meminfo");
-    exit(EXIT_FAILURE);
-  }
   while (infile.good()) {
-    std::getline(infile, searchtoken);
-    size_t mpos = searchtoken.find(memAvailable);
+    std::getline(infile, searchToken);
+    size_t mpos = searchToken.find(memAvailable);
     if (mpos != std::string::npos) {
-      memavailstr = searchtoken;
+      memAvailStr = searchToken;
       break;
     }
   }
-  memavailstr.erase(memavailstr.begin(), memavailstr.begin() + memAvailable.length());
-  std::istringstream mema(memavailstr);
-  mema >> memavail;
+  memAvailStr.erase(memAvailStr.begin(), memAvailStr.begin() + memAvailable.length());
+  std::istringstream mema(memAvailStr);
+  mema >> memAvail;
 
-  unsigned long memused = memtotal - memavail;
-  memused /= 1024;
-  memtotal /= 1024;
+  unsigned long memUsed{memTotal - memAvail};
+  memUsed /= 1024;
+  memTotal /= 1024;
   std::stringstream mem;
-  mem << COLOR << "memory:\t\033[0m" << memused << "M / " << memtotal << "M\n";
+  mem << COLOR << "memory:\t\033[0m" << memUsed << "M / " << memTotal << "M\n";
 
   return mem.str();
 }
@@ -233,14 +219,10 @@ std::string Kernel() {
 }
 
 int main() {
-  if (uname(&Uname) != 0) {
-    perror("uname error");
-    exit(EXIT_FAILURE);
-  }
-  if (sysinfo(&Sysinfo) != 0) {
-    perror("sysinfo error");
-    exit(EXIT_FAILURE);
-  }
+  if (uname(&Uname) != 0)
+    throw std::runtime_error("Unable to access utsname.h");
+  if (sysinfo(&Sysinfo) != 0)
+    throw std::runtime_error("Unable to access sysinfo.h");
 
   std::string line;
   std::istringstream f(logo);
