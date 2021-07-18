@@ -1,29 +1,43 @@
-#include <iostream>
-#include <errno.h>
-#include <unistd.h>
-#include <fstream>
-#include <sstream>
-#include <filesystem>
 #include <algorithm>
+#include <errno.h>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
 
-#include "yafetch.h"
 #include "config.h"
 
-#include <sys/utsname.h>
-#include <sys/sysinfo.h>
 #include <sys/stat.h>
+#include <sys/sysinfo.h>
+#include <sys/utsname.h>
 
-struct sysinfo sysinfoLocal;
-struct utsname unameLocal;
+#include <cstdint>
+using u128 = __uint128_t; //!< Unsigned 128-bit integer
+using u64 = __uint64_t;   //!< Unsigned 64-bit integer
+using u32 = __uint32_t;   //!< Unsigned 32-bit integer
+using u16 = __uint16_t;   //!< Unsigned 16-bit integer
+using u8 = __uint8_t;     //!< Unsigned 8-bit integer
+using i128 = __int128_t;  //!< Signed 128-bit integer
+using i64 = __int64_t;    //!< Signed 64-bit integer
+using i32 = __int32_t;    //!< Signed 32-bit integer
+using i16 = __int16_t;    //!< Signed 16-bit integer
+using i8 = __int8_t;      //!< Signed 8-bit integer
 
-const std::string Uptime() {
-  long totalSecs = sysinfoLocal.uptime;
+struct sysinfo Sysinfo;
+struct utsname Uname;
 
-  int day = totalSecs / (24 * 3600);
-  totalSecs %= (24 * 3600);
-  int hour = totalSecs / 3600;
-  totalSecs %= 3600;	
-  int minutes = totalSecs / 60;
+std::string Uptime() {
+  long totalSecs{Sysinfo.uptime};
+  constexpr u8 SecondsInMinute{60};
+  constexpr u16 SecondsInHour{SecondsInMinute * 60};
+  constexpr u32 SecondsInDay{SecondsInHour * 24};
+
+  u64 day{static_cast<u64>(totalSecs / SecondsInDay)};
+  totalSecs %= SecondsInDay;
+  u16 hour{static_cast<u8>(totalSecs / SecondsInHour)};
+  totalSecs %= SecondsInHour;
+  u16 minutes{static_cast<u8>(totalSecs / SecondsInMinute)};
 
   std::stringstream uptime;
 
@@ -39,7 +53,7 @@ const std::string Uptime() {
   return uptime.str();
 }
 
-const std::string OSName() {
+std::string OSName() {
   std::string line;
   std::ifstream infile;
   constexpr std::string_view prettyName{"PRETTY_NAME=\""};
@@ -52,32 +66,40 @@ const std::string OSName() {
 
   while (infile.good()) {
     std::getline(infile, line);
-    size_t pos = line.find(prettyName);
-    if(pos!=std::string::npos)
+    size_t pos{line.find(prettyName)};
+    if (pos != std::string::npos)
       break;
   }
 
-  line.erase(line.begin(), line.begin() + prettyName.length());
-  line.erase(line.end() - 1);
+  line = line.substr(prettyName.length(), line.length() - (prettyName.length() + 1));
   std::stringstream name;
   name << COLOR << "os:\033[0m\t" << line << "\n";
 
   return name.str();
 }
 
-const std::string Host() {
+std::string Host() {
   std::string productName;
   std::string productFamily;
   std::ifstream infile;
+
+  auto productCheck{[](const std::string &name) {
+    // clang-format off
+    if (name.find("OEM")     != std::string::npos ||
+	name.find("O.E.M.")  != std::string::npos ||
+        name.find("Default") != std::string::npos ||
+	name.find("INVALID") != std::string::npos ||
+        name.find("Not")     != std::string::npos ||
+	name.find("System")  != std::string::npos)
+      return true;
+    return false;
+    // clang-format on
+  }};
+
   infile.open("/sys/devices/virtual/dmi/id/product_name");
   if (infile.good()) {
     std::getline(infile, productName);
-    if (productName.find("OEM")!=std::string::npos ||
-        productName.find("O.E.M.")!=std::string::npos ||
-	productName.find("Default")!=std::string::npos ||
-	productName.find("INVALID")!=std::string::npos ||
-	productName.find("Not")!=std::string::npos ||
-	productName.find("System")!=std::string::npos) {
+    if (productCheck(productName)) {
       infile.open("/sys/devices/virtual/dmi/id/board_name");
       std::getline(infile, productName);
     }
@@ -85,13 +107,7 @@ const std::string Host() {
   infile.open("/sys/devices/virtual/dmi/id/product_family");
   if (infile.good()) {
     std::getline(infile, productFamily);
-    if (productFamily.find("OEM")!=std::string::npos ||
-	productFamily.find("O.E.M.")!=std::string::npos ||
-	productFamily.find("Default")!=std::string::npos ||
-	productFamily.find("INVALID")!=std::string::npos ||
-	productFamily.find("Not")!=std::string::npos ||
-	productFamily.find("System")!=std::string::npos ||
-	productFamily == productName)
+    if (productCheck(productFamily) || productFamily == productName)
       productFamily.clear();
   }
   std::stringstream host;
@@ -100,19 +116,26 @@ const std::string Host() {
   return host.str();
 }
 
-std::string shellCmd(const char *icmd) {
-  FILE *stream;
-  const int maxBuffer = 256;
-  char buffer[maxBuffer];
-  std::string cmdo;
-  stream = popen(icmd, "r");
+std::string shellCmd(const char *input) {
+  std::unique_ptr<FILE, decltype(&pclose)> stream{popen(input, "r"), &pclose};
 
+  std::string output;
   if (stream) {
-    while (!feof(stream))
-      if (fgets(buffer, maxBuffer, stream) != NULL) cmdo.append(buffer);
-        pclose(stream);
+    while (!feof(stream.get())) {
+      auto offset{output.size()};
+      output.resize(output.size() + 256);
+      if (fgets(output.data() + offset, output.size() - offset, stream.get()) == NULL)
+        break;
+      if (ferror(stream.get())) {
+        output.resize(offset);
+        break;
+      }
+      output.resize(std::distance(output.begin(), std::find(output.begin() + offset, output.end(), '\0') - 1));
+    }
   }
-  return cmdo;
+  if (output.back() == '\n')
+    output.pop_back();
+  return output;
 }
 
 uint Pacman(std::string path) {
@@ -125,16 +148,16 @@ uint Portage(std::string path) {
   std::filesystem::path pkgfolder = path;
   uint totalSubdirs = 0;
   using std::filesystem::recursive_directory_iterator;
-  for(auto i = recursive_directory_iterator(path) ; i!= recursive_directory_iterator() ; ++i) {
-    if(i.depth() == 1) {
-    i.disable_recursion_pending();
-    totalSubdirs++;
+  for (auto i{recursive_directory_iterator(path)}; i != recursive_directory_iterator(); ++i) {
+    if (i.depth() == 1) {
+      i.disable_recursion_pending();
+      totalSubdirs++;
     }
   }
   return totalSubdirs;
 }
 
-const std::string Packages() {
+std::string Packages() {
   std::string pkg;
   std::string pkgmgr;
 
@@ -143,32 +166,30 @@ const std::string Packages() {
     pkg.append(" (emerge) ");
   }
   if (std::filesystem::exists("/etc/pacman.d")) {
-    pkg.append(std::to_string(Pacman("/var/lib/pacman/local/")-1));
+    pkg.append(std::to_string(Pacman("/var/lib/pacman/local/") - 1));
     pkg.append(" (pacman) ");
   }
   if (std::filesystem::exists("/etc/apt")) {
     pkgmgr = shellCmd("dpkg --get-selections | wc -l 2>&1");
-    pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
     pkg.append(" (dpkg) ");
   }
   if (std::filesystem::exists("/nix")) {
     if (std::filesystem::exists("/etc/nix")) {
-      pkgmgr = shellCmd("nix-store --query --requisites /run/current-system | wc -l");
+      pkg.append(shellCmd("nix-store --query --requisites /run/current-system | wc -l"));
     } else {
       pkgmgr = shellCmd("nix-env -q | wc -l");
     }
-    pkg.append(pkgmgr.begin(), pkgmgr.end()-1);
     pkg.append(" (nix) ");
   }
 
   std::stringstream pkgs;
   pkgs << COLOR << "pkgs:\t\033[0m" << pkg << "\n";
-	
+
   return pkgs.str();
 }
 
-const std::string Mem() {
-  unsigned long memtotal = sysinfoLocal.totalram / 1024;
+std::string Mem() {
+  unsigned long memtotal = Sysinfo.totalram / 1024;
   unsigned long memavail;
   constexpr std::string_view memAvailable{"MemAvailable:"};
   std::string memavailstr;
@@ -181,13 +202,13 @@ const std::string Mem() {
   while (infile.good()) {
     std::getline(infile, searchtoken);
     size_t mpos = searchtoken.find(memAvailable);
-    if(mpos!=std::string::npos) {
+    if (mpos != std::string::npos) {
       memavailstr = searchtoken;
       break;
     }
   }
   memavailstr.erase(memavailstr.begin(), memavailstr.begin() + memAvailable.length());
-  std::istringstream mema (memavailstr);
+  std::istringstream mema(memavailstr);
   mema >> memavail;
 
   unsigned long memused = memtotal - memavail;
@@ -199,38 +220,35 @@ const std::string Mem() {
   return mem.str();
 }
 
-const std::string User() {
+std::string User() {
   std::stringstream user;
-  user << HOSTCOLOR << getlogin() << "@" << unameLocal.nodename << "\033[0m\n";
+  user << HOSTCOLOR << getlogin() << "@" << Uname.nodename << "\033[0m\n";
   return user.str();
 }
 
-const std::string Kernel() {
+std::string Kernel() {
   std::stringstream kernel;
-  kernel << COLOR << "kernel:\t\033[0m" << unameLocal.release << "\033[0m\n";
+  kernel << COLOR << "kernel:\t\033[0m" << Uname.release << "\033[0m\n";
   return kernel.str();
 }
 
 int main() {
-  if(uname(&unameLocal) != 0) {
+  if (uname(&Uname) != 0) {
     perror("uname error");
     exit(EXIT_FAILURE);
   }
-  if (sysinfo(&sysinfoLocal) != 0) {
+  if (sysinfo(&Sysinfo) != 0) {
     perror("sysinfo error");
     exit(EXIT_FAILURE);
   }
-	
+
   std::string line;
   std::istringstream f(logo);
-  std::string inf;
+  std::stringstream inf;
 
-  for (int x=0;x<7;x++){
+  for (const auto &function : info) {
     std::getline(f, line);
-    inf.append(line);
-    inf.append((*info[x])());
+    inf << line << function();
   }
-  puts(inf.c_str());
-
-  exit(0);
+  std::cout << inf.str();
 }

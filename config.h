@@ -1,3 +1,5 @@
+#include "yafetch.h"
+
 // Specify which ascii art the program uses
 #include "ascii/tux.h"
 
@@ -6,7 +8,7 @@
 #define COLOR "\033[1;36m"
 
 // Specify which info to show
-const std::string (*info[])() = {
+std::array<std::string(*)(), 7> info{
   User,
   OSName,
   Host,
@@ -15,4 +17,3 @@ const std::string (*info[])() = {
   Uptime,
   Mem,
 };
-
