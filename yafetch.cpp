@@ -12,22 +12,20 @@
 #include <sys/utsname.h>
 
 #include <cstdint>
-using u128 = __uint128_t; //!< Unsigned 128-bit integer
-using u64 = __uint64_t;   //!< Unsigned 64-bit integer
-using u32 = __uint32_t;   //!< Unsigned 32-bit integer
-using u16 = __uint16_t;   //!< Unsigned 16-bit integer
-using u8 = __uint8_t;     //!< Unsigned 8-bit integer
-using i128 = __int128_t;  //!< Signed 128-bit integer
-using i64 = __int64_t;    //!< Signed 64-bit integer
-using i32 = __int32_t;    //!< Signed 32-bit integer
-using i16 = __int16_t;    //!< Signed 16-bit integer
-using i8 = __int8_t;      //!< Signed 8-bit integer
+using u64 = uint_fast64_t;   //!< Unsigned 64-bit integer
+using u32 = uint_fast32_t;   //!< Unsigned 32-bit integer
+using u16 = uint_fast16_t;   //!< Unsigned 16-bit integer
+using u8 = uint_fast8_t;     //!< Unsigned 8-bit integer
+using i64 = int_fast64_t;    //!< Signed 64-bit integer
+using i32 = int_fast32_t;    //!< Signed 32-bit integer
+using i16 = int_fast16_t;    //!< Signed 16-bit integer
+using i8 = int_fast8_t;      //!< Signed 8-bit integer
 
 struct sysinfo Sysinfo;
 struct utsname Uname;
 
 std::string Uptime() {
-  long totalSecs{Sysinfo.uptime};
+  unsigned long totalSecs{Sysinfo.uptime};
   constexpr u8 SecondsInMinute{60};
   constexpr u16 SecondsInHour{SecondsInMinute * 60};
   constexpr u32 SecondsInDay{SecondsInHour * 24};
@@ -132,15 +130,15 @@ std::string shellCmd(const char *input) {
   return output;
 }
 
-uint Pacman(std::string path) {
+unsigned int Pacman(std::string path) {
   std::filesystem::path pkgfolder = path;
   using std::filesystem::directory_iterator;
   return std::distance(directory_iterator(pkgfolder), directory_iterator{});
 }
 
-uint Portage(std::string path) {
+unsigned int Portage(std::string path) {
   std::filesystem::path pkgfolder = path;
-  uint totalSubdirs = 0;
+  unsigned int totalSubdirs = 0;
   using std::filesystem::recursive_directory_iterator;
   for (auto i{recursive_directory_iterator(path)}; i != recursive_directory_iterator(); ++i) {
     if (i.depth() == 1) {
@@ -162,6 +160,9 @@ std::string Packages() {
   }
   if (std::filesystem::exists("/etc/apt")) {
     pkg << shellCmd("dpkg --get-selections | wc -l 2>&1") << " (dpkg) ";
+  }
+  if (std::filesystem::exists("/etc/xbps.d")) {
+    pkg << shellCmd("xbps-query -l | wc -l") << " (xbps) ";
   }
   if (std::filesystem::exists("/nix")) {
     if (std::filesystem::exists("/etc/nix")) {
