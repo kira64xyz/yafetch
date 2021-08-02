@@ -7,9 +7,9 @@ $(TARGET): $(TARGET).cpp
 	$(CXX) $(CFLAGS) -o $(TARGET) $(TARGET).cpp
 
 clean:
-	$(RM) $(TARGET)
+	rm -f $(TARGET)
 
-install:
+install: $(TARGET)
 	@install -Dm755 $(TARGET) $(DESTDIR)$(PREFIX)/bin/$(TARGET)
 
 uninstall:

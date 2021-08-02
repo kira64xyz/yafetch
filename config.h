@@ -3,9 +3,9 @@
 // Specify which ascii art the program uses
 #include "ascii/tux.h"
 
-#define HOSTCOLOR "\033[1;34m"
+#define HOSTCOLOR "\033[1;36m"
 
-#define COLOR "\033[1;36m"
+#define COLOR "\033[1;34m"
 
 // Specify which info to show
 std::array<std::string(*)(), 7> info{
