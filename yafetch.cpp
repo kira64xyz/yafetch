@@ -131,14 +131,14 @@ std::string shellCmd(const char *input) {
 }
 
 unsigned int Pacman(std::string path) {
-  std::filesystem::path pkgfolder = path;
+  std::filesystem::path pkgfolder{path};
   using std::filesystem::directory_iterator;
   return std::distance(directory_iterator(pkgfolder), directory_iterator{});
 }
 
 unsigned int Portage(std::string path) {
-  std::filesystem::path pkgfolder = path;
-  unsigned int totalSubdirs = 0;
+  std::filesystem::path pkgfolder{path};
+  unsigned int totalSubdirs{0};
   using std::filesystem::recursive_directory_iterator;
   for (auto i{recursive_directory_iterator(path)}; i != recursive_directory_iterator(); ++i) {
     if (i.depth() == 1) {
@@ -188,7 +188,7 @@ std::string Mem() {
   std::ifstream infile("/proc/meminfo");
   while (infile.good()) {
     std::getline(infile, searchToken);
-    size_t mpos = searchToken.find(memAvailable);
+    size_t mpos{searchToken.find(memAvailable)};
     if (mpos != std::string::npos) {
       memAvailStr = searchToken;
       break;
