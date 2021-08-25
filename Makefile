@@ -1,4 +1,4 @@
-CFLAGS=-g -Wall -std=c++17 -O3
+CFLAGS=-Wall -std=c++17 -O3
 TARGET=yafetch
 
 all: $(TARGET)
