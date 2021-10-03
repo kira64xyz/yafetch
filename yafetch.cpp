@@ -4,10 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "config.h"
 
-#include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 
@@ -25,7 +25,7 @@ struct sysinfo Sysinfo;
 struct utsname Uname;
 
 std::string Uptime() {
-  unsigned long totalSecs{Sysinfo.uptime};
+  unsigned long totalSecs{static_cast<unsigned long>(Sysinfo.uptime)};
   constexpr u8 SecondsInMinute{60};
   constexpr u16 SecondsInHour{SecondsInMinute * 60};
   constexpr u32 SecondsInDay{SecondsInHour * 24};
@@ -96,6 +96,7 @@ std::string Host() {
       std::getline(infile, productName);
     }
   }
+  infile.close();
   infile.open("/sys/devices/virtual/dmi/id/product_family");
   if (infile.good()) {
     std::getline(infile, productFamily);
