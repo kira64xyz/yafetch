@@ -18,7 +18,7 @@ along with yafetch; see the file COPYING.  If not see
 #include "yafetch.h"
 
 // Specify which ascii art the program uses
-#include "ascii/tux.h"
+#include "ascii/gnu.h"
 
 #define HOSTCOLOR "\033[1;36m"
 
