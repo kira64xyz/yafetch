@@ -41,48 +41,38 @@ using i8 = int_fast8_t;    //!< Signed 8-bit integer
 struct sysinfo Sysinfo;
 struct utsname Uname;
 
+struct Colors colors;
+
 std::string Uptime() {
-  unsigned long totalSecs{static_cast<unsigned long>(Sysinfo.uptime)};
-  std::ostringstream uptime;
-  constexpr u8 SecondsInMinute{60};
-  constexpr u16 SecondsInHour{SecondsInMinute * 60};
-  constexpr u32 SecondsInDay{SecondsInHour * 24};
+  time_t totalSecs{static_cast<time_t>(Sysinfo.uptime)};
+  auto formattedTime = gmtime(&totalSecs);
+  std::string uptime;
 
-  u64 day{static_cast<u64>(totalSecs / SecondsInDay)};
-  totalSecs %= SecondsInDay;
-  u16 hour{static_cast<u8>(totalSecs / SecondsInHour)};
-  totalSecs %= SecondsInHour;
-  u16 minutes{static_cast<u8>(totalSecs / SecondsInMinute)};
+  auto hours = formattedTime->tm_hour;
+  auto minutes = formattedTime->tm_min;
+  auto seconds = formattedTime->tm_sec;
 
-  uptime << COLOR << "uptime:\t\033[0m";
+  if (hours != 0)
+      uptime += std::to_string(hours) + "h ";
+  if (minutes != 0)
+      uptime += std::to_string(minutes) + "m ";
+  if (seconds != 0)
+      uptime += std::to_string(seconds) + "s";
 
-  if (day)
-    uptime << day << "d ";
-  if (hour)
-    uptime << hour << "h ";
-
-  uptime << minutes << "m\n";
-
-  return uptime.str();
+  return colors.wrap("uptime:") + uptime + "\n";
 }
 
 std::string OSName() {
-  std::string line;
-  std::ifstream infile;
-  std::ostringstream name;
-  constexpr std::string_view prettyName{"PRETTY_NAME=\""};
-  infile.open("/etc/os-release");
+    auto stream = std::ifstream("/etc/os-release");
+    std::string prettyName;
 
-  while (infile.good()) {
-    std::getline(infile, line);
-    size_t pos{line.find(prettyName)};
-    if (pos != std::string::npos)
-      break;
-  }
+    for (std::string line; std::getline(stream, line);) {
+        if (line.find("PRETTY_NAME") != std::string::npos) {
+            prettyName = line.substr(line.find("=") + 2, (line.length() - line.find("=") - 3));
+        }
+    }
 
-  name << COLOR << "os:\033[0m\t" << line.substr(prettyName.length(), line.length() - (prettyName.length() + 1)) << "\n";
-
-  return name.str();
+    return colors.wrap("os:") + prettyName + "\n";
 }
 
 std::string Host() {
@@ -119,7 +109,7 @@ std::string Host() {
     if (productCheck(productFamily) || productFamily == productName)
       productFamily.clear();
   }
-  host << COLOR << "host:\t\033[0m" << productName << ' ' << productFamily << '\n';
+  host << colors.wrap("host:") << productName << ' ' << productFamily << '\n';
 
   return host.str();
 }
@@ -190,7 +180,7 @@ std::string Packages() {
   if (std::filesystem::exists("/etc/xbps.d"))
     pkg << shellCmd("xbps-query -l | wc -l") << " (xbps) ";
 
-  packageOutput << COLOR << "pkgs:\t\033[0m" << pkg.str() << '\n';
+  packageOutput << colors.wrap("pkgs:") << pkg.str() << '\n';
 
   return packageOutput.str();
 }
@@ -217,21 +207,17 @@ std::string Mem() {
   unsigned long memUsed{memTotal - memAvail};
   memUsed /= 1024;
   memTotal /= 1024;
-  memory << COLOR << "memory:\t\033[0m" << memUsed << "M / " << memTotal << "M\n";
+  memory << colors.wrap("memory:") << memUsed << "M / " << memTotal << "M\n";
 
   return memory.str();
 }
 
 std::string User() {
-  std::ostringstream user;
-  user << HOSTCOLOR << getlogin() << "@" << Uname.nodename << "\033[0m\n";
-  return user.str();
+  return colors.wraphost(std::string(getlogin()) + "@" + Uname.nodename);
 }
 
 std::string Kernel() {
-  std::ostringstream kernel;
-  kernel << COLOR << "kernel:\t\033[0m" << Uname.release << "\033[0m\n";
-  return kernel.str();
+  return colors.wrap("kernel:") + Uname.release + "\033[0m\n";
 }
 
 int main() {

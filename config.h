@@ -15,14 +15,24 @@ You should have received a copy of the GNU General Public License
 along with yafetch; see the file COPYING.  If not see
 <http://www.gnu.org/licenses/>. */
 
+#include <string>
 #include "yafetch.h"
 
 // Specify which ascii art the program uses
 #include "ascii/gnu.h"
 
-#define HOSTCOLOR "\033[1;36m"
+struct Colors {
+    std::string color = "\033[1;34m";
+    std::string hostcolor = "\033[1;36m";
 
-#define COLOR "\033[1;34m"
+    std::string wrap(std::string str) {
+        return color + str + "\033[0m ";
+    }
+
+    std::string wraphost(std::string str) {
+        return hostcolor + str + "\033[0m\n";
+    }
+};
 
 // Specify which info to show
 std::array<std::string(*)(), 7> info{
