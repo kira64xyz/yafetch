@@ -20,7 +20,7 @@ TARGET=yafetch
 
 all: $(TARGET)
 
-$(TARGET): $(TARGET).cpp
+$(TARGET): $(TARGET).cpp config.h
 	$(CXX) $(CFLAGS) -o $(TARGET) $(TARGET).cpp
 
 clean:
