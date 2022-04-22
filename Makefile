@@ -15,7 +15,7 @@
 # along with yafetch; see the file COPYING.  If not see
 # <http://www.gnu.org/licenses/>.
 
-CFLAGS=-Wall -std=c++17 -O3
+CFLAGS=-Wall -std=c++17 -g -O3
 TARGET=yafetch
 
 all: $(TARGET)

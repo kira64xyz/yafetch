@@ -22,6 +22,7 @@ along with yafetch; see the file COPYING.  If not see
 #include <sstream>
 #include <unistd.h>
 
+#include "yafetch.h"
 #include "config.h"
 
 #include <sys/stat.h>
@@ -59,7 +60,7 @@ std::string Uptime() {
   if (seconds != 0)
       uptime += std::to_string(seconds) + "s";
 
-  return colors.wrap("uptime:") + uptime + "\n";
+  return uptime;
 }
 
 std::string OSName() {
@@ -72,8 +73,8 @@ std::string OSName() {
         }
     }
 
-    return colors.wrap("os:") + prettyName + "\n";
-}
+    return prettyName;
+} 
 
 std::string Host() {
   std::string productName;
@@ -109,80 +110,9 @@ std::string Host() {
     if (productCheck(productFamily) || productFamily == productName)
       productFamily.clear();
   }
-  host << colors.wrap("host:") << productName << ' ' << productFamily << '\n';
+  host << productName << ' ' << productFamily;
 
   return host.str();
-}
-
-std::string shellCmd(const char *input) {
-  std::unique_ptr<FILE, decltype(&pclose)> stream{popen(input, "r"), &pclose};
-  std::string output;
-
-  if (stream) {
-    while (!feof(stream.get())) {
-      auto offset{output.size()};
-      output.resize(output.size() + 256);
-      if (fgets(output.data() + offset, output.size() - offset, stream.get()) == NULL)
-        break;
-      if (ferror(stream.get())) {
-        output.resize(offset);
-        break;
-      }
-      output.resize(std::distance(output.begin(), std::find(output.begin() + offset, output.end(), '\0') - 1));
-    }
-  }
-  if (output.back() == '\n')
-    output.pop_back();
-  return output;
-}
-
-unsigned int Pacman(std::string path) {
-  std::filesystem::path pkgFolder{path};
-  using std::filesystem::directory_iterator;
-  return std::distance(directory_iterator(pkgFolder), directory_iterator{});
-}
-
-unsigned int Portage(std::string path) {
-  std::filesystem::path pkgFolder{path};
-  unsigned int totalSubdirs{0};
-  using std::filesystem::recursive_directory_iterator;
-  for (auto i{recursive_directory_iterator(path)}; i != recursive_directory_iterator(); ++i) {
-    if (i.depth() == 1) {
-      i.disable_recursion_pending();
-      totalSubdirs++;
-    }
-  }
-  return totalSubdirs;
-}
-
-std::string Packages() {
-  std::ostringstream pkg;
-  std::ostringstream packageOutput;
-
-  if (std::filesystem::exists("/etc/apt"))
-    pkg << shellCmd("dpkg --get-selections | wc -l 2>&1") << " (dpkg) ";
-
-  if (std::filesystem::exists("/etc/portage"))
-    pkg << std::to_string(Portage("/var/db/pkg")) << " (emerge) ";
-
-  if (std::filesystem::exists("/nix")) {
-    if (std::filesystem::exists("/etc/nix")) {
-      pkg << shellCmd("nix-store --query --requisites /run/current-system | wc -l");
-    } else {
-      pkg << shellCmd("nix-env -q | wc -l");
-    }
-    pkg << (" (nix) ");
-  }
-
-  if (std::filesystem::exists("/etc/pacman.d"))
-    pkg << std::to_string(Pacman("/var/lib/pacman/local/") - 1) << " (pacman) ";
-
-  if (std::filesystem::exists("/etc/xbps.d"))
-    pkg << shellCmd("xbps-query -l | wc -l") << " (xbps) ";
-
-  packageOutput << colors.wrap("pkgs:") << pkg.str() << '\n';
-
-  return packageOutput.str();
 }
 
 std::string Mem() {
@@ -207,7 +137,7 @@ std::string Mem() {
   unsigned long memUsed{memTotal - memAvail};
   memUsed /= 1024;
   memTotal /= 1024;
-  memory << colors.wrap("memory:") << memUsed << "M / " << memTotal << "M\n";
+  memory << memUsed << "M / " << memTotal << "M";
 
   return memory.str();
 }
@@ -217,7 +147,7 @@ std::string User() {
 }
 
 std::string Kernel() {
-  return colors.wrap("kernel:") + Uname.release + "\033[0m\n";
+  return (static_cast<std::string>(Uname.release) + "\033[0m");
 }
 
 int main() {
@@ -227,12 +157,67 @@ int main() {
     throw std::runtime_error("Unable to access sysinfo.h");
 
   std::string line;
-  std::istringstream f(logo);
-  std::ostringstream inf;
+  std::istringstream logo;
+  std::string osName;
+  std::string out;
+  
+  osName = OSName();
+  PackageManagers* pkg{nullptr};
 
-  for (const auto &function : info) {
-    std::getline(f, line);
-    inf << line << function();
+  if (osName.find("NixOS") != std::string::npos) {
+    logo.str("\033[1;34m  \\\\  \033[1;36m\\\\ //\t\n\
+\033[1;34m ==\\\\__\033[1;36m\\\\/ \033[1;34m//\t\n\
+\033[1;36m   //   \033[1;36m\\\\\033[1;34m//\t\n\
+\033[1;36m==//     \033[1;34m//==\t\n\
+\033[1;36m //\033[1;34m\\\\\033[1;36m___\033[1;34m//\t\n\
+\033[1;36m// \033[1;34m/\\\\  \033[1;36m\\\\==\t\n\
+\033[1;34m  // \\\\  \033[1;36m\\\\\t");
+    pkg = new Nix();
+  } else if (osName.find("Arch") != std::string::npos) {
+    logo.str("\033[1;36m       /\\\t\n\
+\033[1;36m      /  \\\t\n\
+\033[1;36m     /\\   \\\t\n\
+\033[1;34m    /      \\\t\n\
+\033[1;34m   /   ,,   \\\t\n\
+\033[1;34m  /   |  |  -\\\t\n\
+\033[1;34m /_-''    ''-_\\\t");
+    pkg = new Pacman();
+  } else if (osName.find("Gentoo") != std::string::npos) {
+    logo.str("\033[1;35m _-----_\t\n\
+\033[1;35m(       \\\t\n\
+\033[1;35m\\    0   \\\t\n\
+\033[1;0m \\        )\t\n\
+\033[1;0m /      _/\t\n\
+\033[1;0m(     _-\t\n\
+\033[1;0m\\____-\t\t");
+    pkg = new Portage();
+  } else {
+    pkg = new PackageManagers();
+    logo.str("\033[1;34m    ___\t\t\n\
+\033[1;34m   (\033[1;0m..\033[1;34m |\t\n\
+\033[1;34m   (\033[1;35m<>\033[1;34m |\t\n\
+\033[1;34m  / \033[1;0m__\033[1;34m  \\\t\n\
+\033[1;34m ( \033[1;0m/  \\\033[1;34m /|\t\n\
+\033[1;35m_\033[1;34m/\\ \033[1;0m__)\033[1;34m/\033[1;35m_\033[1;34m)\t\n\
+\033[1;35m\\/\033[1;34m-____\033[1;35m\\/\t\n");
   }
-  std::cout << inf.str();
+
+  std::array<std::string, 7> info = {
+    User(),
+    colors.wrap("os:\t") + osName,
+    colors.wrap("host:\t") + Host(),
+    colors.wrap("kernel:\t") + Kernel(),
+    colors.wrap("pkgs:\t") + pkg->Packages(),
+    colors.wrap("uptime:\t") + Uptime(),
+    colors.wrap("memory:\t") + Mem(),
+  };
+
+  if(pkg)
+    delete pkg;
+
+  for (const auto &s : info) {
+    std::getline(logo, line);
+    out += line + s + '\n';
+  }
+  std::cout << out;
 }
