@@ -5,8 +5,7 @@ pkgs.mkShell {
 
   nativeBuildInputs = with pkgs; [
     clang
-    gnumake
-    gdb
+    lldb
+    cmake
   ];
-
 }

@@ -22,14 +22,13 @@ along with yafetch; see the file COPYING.  If not see
 #include <sstream>
 #include <unistd.h>
 
-#include "yafetch.h"
 #include "config.h"
+#include "yafetch.h"
 
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 
-#include <cstdint>
 using u64 = uint_fast64_t; //!< Unsigned 64-bit integer
 using u32 = uint_fast32_t; //!< Unsigned 32-bit integer
 using u16 = uint_fast16_t; //!< Unsigned 16-bit integer
@@ -41,11 +40,10 @@ using i8 = int_fast8_t;    //!< Signed 8-bit integer
 
 struct sysinfo Sysinfo;
 struct utsname Uname;
-
 struct Colors colors;
 
 std::string Uptime() {
-  time_t totalSecs{static_cast<time_t>(Sysinfo.uptime)};
+  time_t totalSecs{reinterpret_cast<time_t>(Sysinfo.uptime)};
   auto formattedTime = gmtime(&totalSecs);
   std::string uptime;
 
@@ -53,28 +51,27 @@ std::string Uptime() {
   auto minutes = formattedTime->tm_min;
   auto seconds = formattedTime->tm_sec;
 
-  if (hours != 0)
-      uptime += std::to_string(hours) + "h ";
-  if (minutes != 0)
-      uptime += std::to_string(minutes) + "m ";
-  if (seconds != 0)
-      uptime += std::to_string(seconds) + "s";
+  if (hours)
+    uptime += std::to_string(hours) + "h ";
+  if (minutes)
+    uptime += std::to_string(minutes) + "m ";
+  if (seconds)
+    uptime += std::to_string(seconds) + "s";
 
   return uptime;
 }
 
 std::string OSName() {
-    auto stream = std::ifstream("/etc/os-release");
-    std::string prettyName;
+  auto stream = std::ifstream("/etc/os-release");
+  std::string prettyName;
 
-    for (std::string line; std::getline(stream, line);) {
-        if (line.find("PRETTY_NAME") != std::string::npos) {
-            prettyName = line.substr(line.find("=") + 2, (line.length() - line.find("=") - 3));
-        }
-    }
+  for (std::string line; std::getline(stream, line);) {
+    if (line.find("PRETTY_NAME") != std::string::npos)
+      prettyName = line.substr(line.find("=") + 2, (line.length() - line.find("=") - 3));
+  }
 
-    return prettyName;
-} 
+  return prettyName;
+}
 
 std::string Host() {
   std::string productName;
@@ -91,11 +88,13 @@ std::string Host() {
         name.find("Not")     != std::string::npos ||
         name.find("System")  != std::string::npos)
       return true;
+
     return false;
     // clang-format on
   }};
 
   infile.open("/sys/devices/virtual/dmi/id/product_name");
+
   if (infile.good()) {
     std::getline(infile, productName);
     if (productCheck(productName)) {
@@ -103,26 +102,29 @@ std::string Host() {
       std::getline(infile, productName);
     }
   }
+
   infile.close();
   infile.open("/sys/devices/virtual/dmi/id/product_family");
+
   if (infile.good()) {
     std::getline(infile, productFamily);
     if (productCheck(productFamily) || productFamily == productName)
       productFamily.clear();
   }
-  host << productName << ' ' << productFamily;
 
+  host << productName << ' ' << productFamily;
   return host.str();
 }
 
 std::string Mem() {
+  constexpr std::string_view searchPattern{"MemAvailable:"};
   unsigned long memTotal{Sysinfo.totalram / 1024};
   unsigned long memAvail;
-  constexpr std::string_view searchPattern{"MemAvailable:"};
   std::string memAvailStr;
   std::string searchToken;
   std::ostringstream memory;
   std::ifstream infile("/proc/meminfo");
+
   while (infile.good()) {
     std::getline(infile, searchToken);
     size_t mpos{searchToken.find(searchPattern)};
@@ -131,6 +133,7 @@ std::string Mem() {
       break;
     }
   }
+
   memAvailStr.erase(memAvailStr.begin(), memAvailStr.begin() + searchPattern.length());
   memAvail = std::stol(memAvailStr);
 
@@ -142,13 +145,9 @@ std::string Mem() {
   return memory.str();
 }
 
-std::string User() {
-  return colors.wraphost(std::string(getlogin()) + "@" + Uname.nodename);
-}
+std::string User() { return colors.wraphost(std::string(getlogin()) + "@" + Uname.nodename); }
 
-std::string Kernel() {
-  return (static_cast<std::string>(Uname.release) + "\033[0m");
-}
+std::string Kernel() { return (static_cast<std::string>(Uname.release) + "\033[0m"); }
 
 int main() {
   if (uname(&Uname) != 0)
@@ -160,9 +159,9 @@ int main() {
   std::istringstream logo;
   std::string osName;
   std::string out;
-  
+
   osName = OSName();
-  PackageManagers* pkg{nullptr};
+  PackageManagers *pkg{nullptr};
 
   if (osName.find("NixOS") != std::string::npos) {
     logo.str("\033[1;34m  \\\\  \033[1;36m\\\\ //\t\n\
@@ -203,16 +202,16 @@ int main() {
   }
 
   std::array<std::string, 7> info = {
-    User(),
-    colors.wrap("os:\t") + osName,
-    colors.wrap("host:\t") + Host(),
-    colors.wrap("kernel:\t") + Kernel(),
-    colors.wrap("pkgs:\t") + pkg->Packages(),
-    colors.wrap("uptime:\t") + Uptime(),
-    colors.wrap("memory:\t") + Mem(),
+      User(),
+      colors.wrap("os:\t") + osName,
+      colors.wrap("host:\t") + Host(),
+      colors.wrap("kernel:\t") + Kernel(),
+      colors.wrap("pkgs:\t") + pkg->Packages(),
+      colors.wrap("uptime:\t") + Uptime(),
+      colors.wrap("memory:\t") + Mem(),
   };
 
-  if(pkg)
+  if (pkg)
     delete pkg;
 
   for (const auto &s : info) {
